@@ -1,0 +1,10 @@
+// Witz programming language
+
+@dog {
+	$name:string;
+	#eat:int(food:Food) {
+		food.consume();
+		<- caca;
+	}
+
+}
