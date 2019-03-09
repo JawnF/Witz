@@ -1,10 +1,30 @@
 // Witz programming language
 
 @dog {
-	$name:string;
+	$name:str;
+	#dog(name:str){
+		this.name = name;
+	}
 	#eat:int(food:Food) {
 		food.consume();
-		<- caca;
+		<- new poop;
 	}
-
+	#scratch:void(){
+		$i = 5;
+		for i -> 0 skip -1 {
+			print('scratch scratch');
+		}
+	}
 }
+
+@pug <dog>{
+	#idle:void(){
+		while(true){
+			print('pant pant');
+		}
+	}
+}
+
+$mydog:dog = new dog;
+
+mydog.scratch();
