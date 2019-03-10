@@ -2,29 +2,32 @@
 
 @dog {
 	$name:str;
+	$fleas:stack;
 	#dog(name:str){
 		this.name = name;
+		this.fleas.push('pepe');
+		this.fleas.push('juan');
 	}
 	#eat:int(food:Food) {
 		food.consume();
 		<- new poop;
 	}
-	#scratch:void(){
-		$i = 5;
-		for i -> 0 skip -1 {
+	#scratch:void() {
+		while(this.fleas.pop()){
 			print('scratch scratch');
 		}
 	}
 }
 
 @pug <dog>{
-	#idle:void(){
-		while(true){
-			print('pant pant');
+	#snort:void() {
+		$i = 5*1-4+4/1%5;
+		for i -> 0 skip -1 {
+			print('snort snort');
 		}
 	}
 }
 
-$mydog:dog = new dog;
-
+$name = input('Name your dog: ');
+$mydog:dog = new dog(name);
 mydog.scratch();
