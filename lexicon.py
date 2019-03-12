@@ -24,8 +24,7 @@ reserved = {
     'push'      : 'PUSH',
     'stack'     : 'STACK',
     'this'      : 'THIS',
-	'void'		: 'VOID',
-	'expr'		: 'EXPR'
+	'void'		: 'VOID'
 	}
 
 # Pasa's default tokens

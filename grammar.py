@@ -19,7 +19,7 @@ def p_attr(p):
     '''
     
 def p_init(p):
-    '''init : '=' EXPR
+    '''init : '=' exp
             | empty
     '''
 
@@ -28,6 +28,7 @@ def p_type(p):
             | FLOAT_TYPE
             | STRING_TYPE
             | BOOLEAN_TYPE
+            | STACK
     '''
 
 def p_return_type(p):
@@ -91,30 +92,32 @@ def p_statements(p):
     '''
 
 def p_statement(p):
-    '''statement : assignment
-                 | if_block
+    '''statement : if_block
                  | while_block
                  | for_block
                  | print_stmt
-                 | EXPR
+                 | expr
                  | return
     '''
 
-def p_assignment(p):
-    '''assignment : prop '=' EXPR ';'
+def p_assign(p):
+    '''assign : prop '=' expr
+              | prop '=' NEW ID
     '''
 
 def p_prop(p):
     '''prop : THIS '.' ID
+            | ID '.' ID
             | ID
     '''
 
 def p_if_block(p):
-    '''if_block : IF '(' EXPR ')' block
+    '''if_block : IF '(' exp ')' block
+                | IF '(' exp ')' block ELSE block
     '''
 
 def p_while_block(p):
-    '''while_block : WHILE '(' EXPR ')' block
+    '''while_block : WHILE '(' exp ')' block
     '''
     
 def p_for_block(p):
@@ -122,11 +125,11 @@ def p_for_block(p):
     '''
     
 def p_print_stmt(p):
-    '''print_stmt : PRINT '(' EXPR ')' ';'
+    '''print_stmt : PRINT '(' exp ')' ';'
     '''
     
 def p_return(p):
-    '''return : RETURN EXPR ';'
+    '''return : RETURN exp ';'
               | RETURN ';'
     '''
 
@@ -139,93 +142,118 @@ def p_number(p):
               | INT
     '''
 
-    
-    
-# -------------------------------------------------------
+def p_expr(p):
+    '''expr : exp ';'
+    '''
 
+def p_exp(p):
+    '''exp : read
+           | math_exp
+           | logic_exp
+           | assign
+    '''
 
-# def p_declarations(p):
-# 	'''declarations : names ':' type ';' xdeclarations'''
+def p_read(p):
+    '''read : READ '(' string ')'
+    '''
 
-# def p_xdeclarations(p):
-# 	'''xdeclarations : names ':' type ';' xdeclarations 
-# 					 | empty '''
+def p_string(p):
+    '''string : ID
+              | STRING
+    '''
 
-# def p_names(p):
-# 	'names : ID name'
+def p_math_exp(p):
+    '''math_exp : term math_exp_alt
+    '''
 
-# def p_name(p):
-# 	'''name : ',' ID name
-# 			| empty'''
+def p_math_exp_alt(p):
+    '''math_exp_alt : '+' term math_exp_alt
+                    | '-' term math_exp_alt 
+                    | empty 
+    '''
 
+def p_term(p):
+    '''term : factor term_alt
+    '''
 
+def p_term_alt(p):
+    '''term_alt : '*' factor term_alt 
+                | '/' factor term_alt
+                | empty
+    '''
 
-# # Regla <ASIGNACION>
-# def p_assignment(p):
-# 	'''assignment : ID '=' expression ';' '''
+def p_factor(p):
+    '''factor : ID
+              | number
+              | '(' math_exp ')' 
+    '''
 
-# # Regla <ESCRITURA>
-# def p_writing(p):
-# 	'''writing : PRINT '(' params ')' ';' '''
+def p_logic_exp(p):
+    '''logic_exp : log_a logic_exp_alt
+    '''
 
-# def p_params(p):
-# 	'params : param xparam'
+def p_logic_exp_alt(p):
+    '''logic_exp_alt : OR log_a logic_exp_alt
+                     | empty
+    '''
 
-# def p_param(p):
-# 	'''param : expression
-# 			 | STRING '''
+def p_log_a(p):
+    '''log_a : log_b log_a_alt
+    '''
 
-# def p_xparam(p):
-# 	'''xparam : ',' param xparam
-# 			  | empty '''
+def p_log_a_alt(p):
+    '''log_a_alt : AND log_b log_a_alt
+                 | empty
+    '''
 
-# # Regla <CONDICION>
-# def p_condition(p):
-# 	'''condition : IF '(' expression ')' block ';'
-# 				 | IF '(' expression ')' block ELSE block ';' '''
+def p_log_b(p):
+    '''log_b : '(' logic_exp ')' 
+             | call
+             | bool
+             | comparison
+    '''
 
-# # Regla <EXPRESION>
-# def p_expression(p):
-# 	'''expression : exp comparison
-# 				  | exp '''
+def p_bool(p):
+    '''bool : TRUE
+            | FALSE
+    '''
 
-# def p_comparison(p):
-# 	'''comparison : '>' exp 
-# 				  | '<' exp 
-# 				  | NE exp '''
+def p_comparison(p):
+    '''comparison : math_exp comparison_op math_exp
+    '''
 
-# # Regla <EXP>
-# def p_exp(p):
-# 	'''exp : term 
-# 		   | term addsub'''
+def p_comparison_op(p):
+    '''comparison_op : '<'
+                     | '>'
+                     | EQ
+                     | NE
+    '''
 
-# def p_addsub(p):
-# 	'''addsub : '+' term addsub
-# 			  | '-' term addsub 
-# 			  | empty'''
+def p_call(p):
+    '''call : prop '(' args ')'
+            | stack_call '(' args ')'
+    '''
 
-# # Regla <TERMINO>
-# def p_term(p):
-# 	'''term : factor
-# 			| factor multdiv'''
+def p_args(p):
+    '''args : exp args_aux
+            | empty
+    '''
 
-# def p_multdiv(p):
-# 	'''multdiv : '*' factor multdiv
-# 			   | '/' factor multdiv 
-# 			   | empty '''
+def p_args_aux(p):
+    '''args_aux : ',' exp args_aux
+                | empty
+    '''
 
-# # Regla <FACTOR>
-# def p_factor(p):
-# 	'''factor : '(' expression ')'
-# 			  | '+' const  
-# 			  | '-' const
-# 			  | const '''
+def p_stack_call(p):
+    '''stack_call : prop stack_method
+    '''
 
-# # Regla <VAR CTE>
-# def p_const(p):
-# 	'''const : ID
-# 			 | INT
-# 			 | FLOAT '''
+def p_stack_method(p):
+    '''stack_method : POP
+                    | PUSH
+                    | PEEK
+    '''
+
 
 def p_empty(p):
 	'empty :'
@@ -235,20 +263,3 @@ def p_error(p):
     print("Syntax error in input!")
 
 parser = yacc.yacc()
-
-# # Se puede pasar el nombre de archivo como argumento
-# if (len(sys.argv) > 1):
-# 	filename = sys.argv[1]
-
-# # O se puede ingresar al correr el programa
-# else:
-# 	filename = raw_input('Nombre de archivo > ')
-
-# # Leer contenido del archivo
-# with open(filename,"r") as file:
-# 	inp = file.read()
-
-# # Parsear y confirmar
-# result = parser.parse(inp)
-# if result:
-# 	print(result)
