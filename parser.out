@@ -1,0 +1,1483 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    PEEK
+    READ
+    NEW
+    TRUE
+    NE
+    POP
+    PUSH
+    STACK
+    STRING
+    ELSE
+    EQ
+    AND
+    FALSE
+    OR
+
+Grammar
+
+Rule 0     S' -> program
+Rule 1     program -> classes functions vars statements
+Rule 2     vars -> var vars
+Rule 3     vars -> empty
+Rule 4     var -> $ attr init ;
+Rule 5     attr -> ID : type
+Rule 6     init -> = EXPR
+Rule 7     init -> empty
+Rule 8     type -> INT_TYPE
+Rule 9     type -> FLOAT_TYPE
+Rule 10    type -> STRING_TYPE
+Rule 11    type -> BOOLEAN_TYPE
+Rule 12    return_type -> VOID
+Rule 13    return_type -> type
+Rule 14    classes -> class classes
+Rule 15    classes -> empty
+Rule 16    class -> @ ID inheritance class_block
+Rule 17    inheritance -> < ID >
+Rule 18    inheritance -> empty
+Rule 19    class_block -> { vars constructor functions }
+Rule 20    constructor -> ~ ID params func_block
+Rule 21    constructor -> empty
+Rule 22    functions -> function functions
+Rule 23    functions -> empty
+Rule 24    function -> # ID : return_type params func_block
+Rule 25    params -> ( attrs )
+Rule 26    attrs -> attr attrs_alt
+Rule 27    attrs -> empty
+Rule 28    attrs_alt -> , attr attrs_alt
+Rule 29    attrs_alt -> empty
+Rule 30    func_block -> { vars statements }
+Rule 31    statements -> statement
+Rule 32    statements -> empty
+Rule 33    statement -> assignment
+Rule 34    statement -> if_block
+Rule 35    statement -> while_block
+Rule 36    statement -> for_block
+Rule 37    statement -> print_stmt
+Rule 38    statement -> EXPR
+Rule 39    statement -> return
+Rule 40    assignment -> prop = EXPR ;
+Rule 41    prop -> THIS . ID
+Rule 42    prop -> ID
+Rule 43    if_block -> IF ( EXPR ) block
+Rule 44    while_block -> WHILE ( EXPR ) block
+Rule 45    for_block -> FOR number FOR_TO number SKIP number block
+Rule 46    print_stmt -> PRINT ( EXPR ) ;
+Rule 47    return -> RETURN EXPR ;
+Rule 48    return -> RETURN ;
+Rule 49    block -> { statements }
+Rule 50    number -> FLOAT
+Rule 51    number -> INT
+Rule 52    empty -> <empty>
+
+Terminals, with rules where they appear
+
+#                    : 24
+$                    : 4
+(                    : 25 43 44 46
+)                    : 25 43 44 46
+,                    : 28
+.                    : 41
+:                    : 5 24
+;                    : 4 40 46 47 48
+<                    : 17
+=                    : 6 40
+>                    : 17
+@                    : 16
+AND                  : 
+BOOLEAN_TYPE         : 11
+ELSE                 : 
+EQ                   : 
+EXPR                 : 6 38 40 43 44 46 47
+FALSE                : 
+FLOAT                : 50
+FLOAT_TYPE           : 9
+FOR                  : 45
+FOR_TO               : 45
+ID                   : 5 16 17 20 24 41 42
+IF                   : 43
+INT                  : 51
+INT_TYPE             : 8
+NE                   : 
+NEW                  : 
+OR                   : 
+PEEK                 : 
+POP                  : 
+PRINT                : 46
+PUSH                 : 
+READ                 : 
+RETURN               : 47 48
+SKIP                 : 45
+STACK                : 
+STRING               : 
+STRING_TYPE          : 10
+THIS                 : 41
+TRUE                 : 
+VOID                 : 12
+WHILE                : 44
+error                : 
+{                    : 19 30 49
+}                    : 19 30 49
+~                    : 20
+
+Nonterminals, with rules where they appear
+
+assignment           : 33
+attr                 : 4 26 28
+attrs                : 25
+attrs_alt            : 26 28
+block                : 43 44 45
+class                : 14
+class_block          : 16
+classes              : 1 14
+constructor          : 19
+empty                : 3 7 15 18 21 23 27 29 32
+for_block            : 36
+func_block           : 20 24
+function             : 22
+functions            : 1 19 22
+if_block             : 34
+inheritance          : 16
+init                 : 4
+number               : 45 45 45
+params               : 20 24
+print_stmt           : 37
+program              : 0
+prop                 : 40
+return               : 39
+return_type          : 24
+statement            : 31
+statements           : 1 30 49
+type                 : 5 13
+var                  : 2
+vars                 : 1 2 19 30
+while_block          : 35
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . program
+    (1) program -> . classes functions vars statements
+    (14) classes -> . class classes
+    (15) classes -> . empty
+    (16) class -> . @ ID inheritance class_block
+    (52) empty -> .
+
+    @               shift and go to state 2
+    #               reduce using rule 52 (empty -> .)
+    $               reduce using rule 52 (empty -> .)
+    EXPR            reduce using rule 52 (empty -> .)
+    IF              reduce using rule 52 (empty -> .)
+    WHILE           reduce using rule 52 (empty -> .)
+    FOR             reduce using rule 52 (empty -> .)
+    PRINT           reduce using rule 52 (empty -> .)
+    RETURN          reduce using rule 52 (empty -> .)
+    THIS            reduce using rule 52 (empty -> .)
+    ID              reduce using rule 52 (empty -> .)
+    $end            reduce using rule 52 (empty -> .)
+
+    program                        shift and go to state 1
+    classes                        shift and go to state 3
+    class                          shift and go to state 4
+    empty                          shift and go to state 5
+
+state 1
+
+    (0) S' -> program .
+
+
+
+state 2
+
+    (16) class -> @ . ID inheritance class_block
+
+    ID              shift and go to state 6
+
+
+state 3
+
+    (1) program -> classes . functions vars statements
+    (22) functions -> . function functions
+    (23) functions -> . empty
+    (24) function -> . # ID : return_type params func_block
+    (52) empty -> .
+
+    #               shift and go to state 9
+    $               reduce using rule 52 (empty -> .)
+    EXPR            reduce using rule 52 (empty -> .)
+    IF              reduce using rule 52 (empty -> .)
+    WHILE           reduce using rule 52 (empty -> .)
+    FOR             reduce using rule 52 (empty -> .)
+    PRINT           reduce using rule 52 (empty -> .)
+    RETURN          reduce using rule 52 (empty -> .)
+    THIS            reduce using rule 52 (empty -> .)
+    ID              reduce using rule 52 (empty -> .)
+    $end            reduce using rule 52 (empty -> .)
+
+    function                       shift and go to state 7
+    functions                      shift and go to state 8
+    empty                          shift and go to state 10
+
+state 4
+
+    (14) classes -> class . classes
+    (14) classes -> . class classes
+    (15) classes -> . empty
+    (16) class -> . @ ID inheritance class_block
+    (52) empty -> .
+
+    @               shift and go to state 2
+    #               reduce using rule 52 (empty -> .)
+    $               reduce using rule 52 (empty -> .)
+    EXPR            reduce using rule 52 (empty -> .)
+    IF              reduce using rule 52 (empty -> .)
+    WHILE           reduce using rule 52 (empty -> .)
+    FOR             reduce using rule 52 (empty -> .)
+    PRINT           reduce using rule 52 (empty -> .)
+    RETURN          reduce using rule 52 (empty -> .)
+    THIS            reduce using rule 52 (empty -> .)
+    ID              reduce using rule 52 (empty -> .)
+    $end            reduce using rule 52 (empty -> .)
+
+    classes                        shift and go to state 11
+    class                          shift and go to state 4
+    empty                          shift and go to state 5
+
+state 5
+
+    (15) classes -> empty .
+
+    #               reduce using rule 15 (classes -> empty .)
+    $               reduce using rule 15 (classes -> empty .)
+    EXPR            reduce using rule 15 (classes -> empty .)
+    IF              reduce using rule 15 (classes -> empty .)
+    WHILE           reduce using rule 15 (classes -> empty .)
+    FOR             reduce using rule 15 (classes -> empty .)
+    PRINT           reduce using rule 15 (classes -> empty .)
+    RETURN          reduce using rule 15 (classes -> empty .)
+    THIS            reduce using rule 15 (classes -> empty .)
+    ID              reduce using rule 15 (classes -> empty .)
+    $end            reduce using rule 15 (classes -> empty .)
+
+
+state 6
+
+    (16) class -> @ ID . inheritance class_block
+    (17) inheritance -> . < ID >
+    (18) inheritance -> . empty
+    (52) empty -> .
+
+    <               shift and go to state 13
+    {               reduce using rule 52 (empty -> .)
+
+    empty                          shift and go to state 14
+    inheritance                    shift and go to state 12
+
+state 7
+
+    (22) functions -> function . functions
+    (22) functions -> . function functions
+    (23) functions -> . empty
+    (24) function -> . # ID : return_type params func_block
+    (52) empty -> .
+
+    #               shift and go to state 9
+    $               reduce using rule 52 (empty -> .)
+    EXPR            reduce using rule 52 (empty -> .)
+    IF              reduce using rule 52 (empty -> .)
+    WHILE           reduce using rule 52 (empty -> .)
+    FOR             reduce using rule 52 (empty -> .)
+    PRINT           reduce using rule 52 (empty -> .)
+    RETURN          reduce using rule 52 (empty -> .)
+    THIS            reduce using rule 52 (empty -> .)
+    ID              reduce using rule 52 (empty -> .)
+    $end            reduce using rule 52 (empty -> .)
+    }               reduce using rule 52 (empty -> .)
+
+    function                       shift and go to state 7
+    functions                      shift and go to state 15
+    empty                          shift and go to state 10
+
+state 8
+
+    (1) program -> classes functions . vars statements
+    (2) vars -> . var vars
+    (3) vars -> . empty
+    (4) var -> . $ attr init ;
+    (52) empty -> .
+
+    $               shift and go to state 16
+    EXPR            reduce using rule 52 (empty -> .)
+    IF              reduce using rule 52 (empty -> .)
+    WHILE           reduce using rule 52 (empty -> .)
+    FOR             reduce using rule 52 (empty -> .)
+    PRINT           reduce using rule 52 (empty -> .)
+    RETURN          reduce using rule 52 (empty -> .)
+    THIS            reduce using rule 52 (empty -> .)
+    ID              reduce using rule 52 (empty -> .)
+    $end            reduce using rule 52 (empty -> .)
+
+    vars                           shift and go to state 17
+    var                            shift and go to state 18
+    empty                          shift and go to state 19
+
+state 9
+
+    (24) function -> # . ID : return_type params func_block
+
+    ID              shift and go to state 20
+
+
+state 10
+
+    (23) functions -> empty .
+
+    $               reduce using rule 23 (functions -> empty .)
+    EXPR            reduce using rule 23 (functions -> empty .)
+    IF              reduce using rule 23 (functions -> empty .)
+    WHILE           reduce using rule 23 (functions -> empty .)
+    FOR             reduce using rule 23 (functions -> empty .)
+    PRINT           reduce using rule 23 (functions -> empty .)
+    RETURN          reduce using rule 23 (functions -> empty .)
+    THIS            reduce using rule 23 (functions -> empty .)
+    ID              reduce using rule 23 (functions -> empty .)
+    $end            reduce using rule 23 (functions -> empty .)
+    }               reduce using rule 23 (functions -> empty .)
+
+
+state 11
+
+    (14) classes -> class classes .
+
+    #               reduce using rule 14 (classes -> class classes .)
+    $               reduce using rule 14 (classes -> class classes .)
+    EXPR            reduce using rule 14 (classes -> class classes .)
+    IF              reduce using rule 14 (classes -> class classes .)
+    WHILE           reduce using rule 14 (classes -> class classes .)
+    FOR             reduce using rule 14 (classes -> class classes .)
+    PRINT           reduce using rule 14 (classes -> class classes .)
+    RETURN          reduce using rule 14 (classes -> class classes .)
+    THIS            reduce using rule 14 (classes -> class classes .)
+    ID              reduce using rule 14 (classes -> class classes .)
+    $end            reduce using rule 14 (classes -> class classes .)
+
+
+state 12
+
+    (16) class -> @ ID inheritance . class_block
+    (19) class_block -> . { vars constructor functions }
+
+    {               shift and go to state 22
+
+    class_block                    shift and go to state 21
+
+state 13
+
+    (17) inheritance -> < . ID >
+
+    ID              shift and go to state 23
+
+
+state 14
+
+    (18) inheritance -> empty .
+
+    {               reduce using rule 18 (inheritance -> empty .)
+
+
+state 15
+
+    (22) functions -> function functions .
+
+    $               reduce using rule 22 (functions -> function functions .)
+    EXPR            reduce using rule 22 (functions -> function functions .)
+    IF              reduce using rule 22 (functions -> function functions .)
+    WHILE           reduce using rule 22 (functions -> function functions .)
+    FOR             reduce using rule 22 (functions -> function functions .)
+    PRINT           reduce using rule 22 (functions -> function functions .)
+    RETURN          reduce using rule 22 (functions -> function functions .)
+    THIS            reduce using rule 22 (functions -> function functions .)
+    ID              reduce using rule 22 (functions -> function functions .)
+    $end            reduce using rule 22 (functions -> function functions .)
+    }               reduce using rule 22 (functions -> function functions .)
+
+
+state 16
+
+    (4) var -> $ . attr init ;
+    (5) attr -> . ID : type
+
+    ID              shift and go to state 24
+
+    attr                           shift and go to state 25
+
+state 17
+
+    (1) program -> classes functions vars . statements
+    (31) statements -> . statement
+    (32) statements -> . empty
+    (33) statement -> . assignment
+    (34) statement -> . if_block
+    (35) statement -> . while_block
+    (36) statement -> . for_block
+    (37) statement -> . print_stmt
+    (38) statement -> . EXPR
+    (39) statement -> . return
+    (52) empty -> .
+    (40) assignment -> . prop = EXPR ;
+    (43) if_block -> . IF ( EXPR ) block
+    (44) while_block -> . WHILE ( EXPR ) block
+    (45) for_block -> . FOR number FOR_TO number SKIP number block
+    (46) print_stmt -> . PRINT ( EXPR ) ;
+    (47) return -> . RETURN EXPR ;
+    (48) return -> . RETURN ;
+    (41) prop -> . THIS . ID
+    (42) prop -> . ID
+
+    EXPR            shift and go to state 43
+    $end            reduce using rule 52 (empty -> .)
+    IF              shift and go to state 39
+    WHILE           shift and go to state 28
+    FOR             shift and go to state 35
+    PRINT           shift and go to state 29
+    RETURN          shift and go to state 30
+    THIS            shift and go to state 40
+    ID              shift and go to state 38
+
+    statements                     shift and go to state 27
+    print_stmt                     shift and go to state 36
+    assignment                     shift and go to state 37
+    if_block                       shift and go to state 41
+    for_block                      shift and go to state 26
+    prop                           shift and go to state 31
+    while_block                    shift and go to state 42
+    statement                      shift and go to state 32
+    return                         shift and go to state 34
+    empty                          shift and go to state 33
+
+state 18
+
+    (2) vars -> var . vars
+    (2) vars -> . var vars
+    (3) vars -> . empty
+    (4) var -> . $ attr init ;
+    (52) empty -> .
+
+    $               shift and go to state 16
+    EXPR            reduce using rule 52 (empty -> .)
+    IF              reduce using rule 52 (empty -> .)
+    WHILE           reduce using rule 52 (empty -> .)
+    FOR             reduce using rule 52 (empty -> .)
+    PRINT           reduce using rule 52 (empty -> .)
+    RETURN          reduce using rule 52 (empty -> .)
+    THIS            reduce using rule 52 (empty -> .)
+    ID              reduce using rule 52 (empty -> .)
+    $end            reduce using rule 52 (empty -> .)
+    ~               reduce using rule 52 (empty -> .)
+    #               reduce using rule 52 (empty -> .)
+    }               reduce using rule 52 (empty -> .)
+
+    var                            shift and go to state 18
+    empty                          shift and go to state 19
+    vars                           shift and go to state 44
+
+state 19
+
+    (3) vars -> empty .
+
+    ~               reduce using rule 3 (vars -> empty .)
+    #               reduce using rule 3 (vars -> empty .)
+    }               reduce using rule 3 (vars -> empty .)
+    EXPR            reduce using rule 3 (vars -> empty .)
+    IF              reduce using rule 3 (vars -> empty .)
+    WHILE           reduce using rule 3 (vars -> empty .)
+    FOR             reduce using rule 3 (vars -> empty .)
+    PRINT           reduce using rule 3 (vars -> empty .)
+    RETURN          reduce using rule 3 (vars -> empty .)
+    THIS            reduce using rule 3 (vars -> empty .)
+    ID              reduce using rule 3 (vars -> empty .)
+    $end            reduce using rule 3 (vars -> empty .)
+
+
+state 20
+
+    (24) function -> # ID . : return_type params func_block
+
+    :               shift and go to state 45
+
+
+state 21
+
+    (16) class -> @ ID inheritance class_block .
+
+    @               reduce using rule 16 (class -> @ ID inheritance class_block .)
+    #               reduce using rule 16 (class -> @ ID inheritance class_block .)
+    $               reduce using rule 16 (class -> @ ID inheritance class_block .)
+    EXPR            reduce using rule 16 (class -> @ ID inheritance class_block .)
+    IF              reduce using rule 16 (class -> @ ID inheritance class_block .)
+    WHILE           reduce using rule 16 (class -> @ ID inheritance class_block .)
+    FOR             reduce using rule 16 (class -> @ ID inheritance class_block .)
+    PRINT           reduce using rule 16 (class -> @ ID inheritance class_block .)
+    RETURN          reduce using rule 16 (class -> @ ID inheritance class_block .)
+    THIS            reduce using rule 16 (class -> @ ID inheritance class_block .)
+    ID              reduce using rule 16 (class -> @ ID inheritance class_block .)
+    $end            reduce using rule 16 (class -> @ ID inheritance class_block .)
+
+
+state 22
+
+    (19) class_block -> { . vars constructor functions }
+    (2) vars -> . var vars
+    (3) vars -> . empty
+    (4) var -> . $ attr init ;
+    (52) empty -> .
+
+    $               shift and go to state 16
+    ~               reduce using rule 52 (empty -> .)
+    #               reduce using rule 52 (empty -> .)
+    }               reduce using rule 52 (empty -> .)
+
+    vars                           shift and go to state 46
+    var                            shift and go to state 18
+    empty                          shift and go to state 19
+
+state 23
+
+    (17) inheritance -> < ID . >
+
+    >               shift and go to state 47
+
+
+state 24
+
+    (5) attr -> ID . : type
+
+    :               shift and go to state 48
+
+
+state 25
+
+    (4) var -> $ attr . init ;
+    (6) init -> . = EXPR
+    (7) init -> . empty
+    (52) empty -> .
+
+    =               shift and go to state 50
+    ;               reduce using rule 52 (empty -> .)
+
+    init                           shift and go to state 49
+    empty                          shift and go to state 51
+
+state 26
+
+    (36) statement -> for_block .
+
+    }               reduce using rule 36 (statement -> for_block .)
+    $end            reduce using rule 36 (statement -> for_block .)
+
+
+state 27
+
+    (1) program -> classes functions vars statements .
+
+    $end            reduce using rule 1 (program -> classes functions vars statements .)
+
+
+state 28
+
+    (44) while_block -> WHILE . ( EXPR ) block
+
+    (               shift and go to state 52
+
+
+state 29
+
+    (46) print_stmt -> PRINT . ( EXPR ) ;
+
+    (               shift and go to state 53
+
+
+state 30
+
+    (47) return -> RETURN . EXPR ;
+    (48) return -> RETURN . ;
+
+    EXPR            shift and go to state 54
+    ;               shift and go to state 55
+
+
+state 31
+
+    (40) assignment -> prop . = EXPR ;
+
+    =               shift and go to state 56
+
+
+state 32
+
+    (31) statements -> statement .
+
+    $end            reduce using rule 31 (statements -> statement .)
+    }               reduce using rule 31 (statements -> statement .)
+
+
+state 33
+
+    (32) statements -> empty .
+
+    $end            reduce using rule 32 (statements -> empty .)
+    }               reduce using rule 32 (statements -> empty .)
+
+
+state 34
+
+    (39) statement -> return .
+
+    }               reduce using rule 39 (statement -> return .)
+    $end            reduce using rule 39 (statement -> return .)
+
+
+state 35
+
+    (45) for_block -> FOR . number FOR_TO number SKIP number block
+    (50) number -> . FLOAT
+    (51) number -> . INT
+
+    FLOAT           shift and go to state 58
+    INT             shift and go to state 57
+
+    number                         shift and go to state 59
+
+state 36
+
+    (37) statement -> print_stmt .
+
+    }               reduce using rule 37 (statement -> print_stmt .)
+    $end            reduce using rule 37 (statement -> print_stmt .)
+
+
+state 37
+
+    (33) statement -> assignment .
+
+    }               reduce using rule 33 (statement -> assignment .)
+    $end            reduce using rule 33 (statement -> assignment .)
+
+
+state 38
+
+    (42) prop -> ID .
+
+    =               reduce using rule 42 (prop -> ID .)
+
+
+state 39
+
+    (43) if_block -> IF . ( EXPR ) block
+
+    (               shift and go to state 60
+
+
+state 40
+
+    (41) prop -> THIS . . ID
+
+    .               shift and go to state 61
+
+
+state 41
+
+    (34) statement -> if_block .
+
+    }               reduce using rule 34 (statement -> if_block .)
+    $end            reduce using rule 34 (statement -> if_block .)
+
+
+state 42
+
+    (35) statement -> while_block .
+
+    }               reduce using rule 35 (statement -> while_block .)
+    $end            reduce using rule 35 (statement -> while_block .)
+
+
+state 43
+
+    (38) statement -> EXPR .
+
+    }               reduce using rule 38 (statement -> EXPR .)
+    $end            reduce using rule 38 (statement -> EXPR .)
+
+
+state 44
+
+    (2) vars -> var vars .
+
+    ~               reduce using rule 2 (vars -> var vars .)
+    #               reduce using rule 2 (vars -> var vars .)
+    }               reduce using rule 2 (vars -> var vars .)
+    EXPR            reduce using rule 2 (vars -> var vars .)
+    IF              reduce using rule 2 (vars -> var vars .)
+    WHILE           reduce using rule 2 (vars -> var vars .)
+    FOR             reduce using rule 2 (vars -> var vars .)
+    PRINT           reduce using rule 2 (vars -> var vars .)
+    RETURN          reduce using rule 2 (vars -> var vars .)
+    THIS            reduce using rule 2 (vars -> var vars .)
+    ID              reduce using rule 2 (vars -> var vars .)
+    $end            reduce using rule 2 (vars -> var vars .)
+
+
+state 45
+
+    (24) function -> # ID : . return_type params func_block
+    (12) return_type -> . VOID
+    (13) return_type -> . type
+    (8) type -> . INT_TYPE
+    (9) type -> . FLOAT_TYPE
+    (10) type -> . STRING_TYPE
+    (11) type -> . BOOLEAN_TYPE
+
+    VOID            shift and go to state 63
+    INT_TYPE        shift and go to state 66
+    FLOAT_TYPE      shift and go to state 62
+    STRING_TYPE     shift and go to state 65
+    BOOLEAN_TYPE    shift and go to state 64
+
+    type                           shift and go to state 68
+    return_type                    shift and go to state 67
+
+state 46
+
+    (19) class_block -> { vars . constructor functions }
+    (20) constructor -> . ~ ID params func_block
+    (21) constructor -> . empty
+    (52) empty -> .
+
+    ~               shift and go to state 71
+    #               reduce using rule 52 (empty -> .)
+    }               reduce using rule 52 (empty -> .)
+
+    constructor                    shift and go to state 69
+    empty                          shift and go to state 70
+
+state 47
+
+    (17) inheritance -> < ID > .
+
+    {               reduce using rule 17 (inheritance -> < ID > .)
+
+
+state 48
+
+    (5) attr -> ID : . type
+    (8) type -> . INT_TYPE
+    (9) type -> . FLOAT_TYPE
+    (10) type -> . STRING_TYPE
+    (11) type -> . BOOLEAN_TYPE
+
+    INT_TYPE        shift and go to state 66
+    FLOAT_TYPE      shift and go to state 62
+    STRING_TYPE     shift and go to state 65
+    BOOLEAN_TYPE    shift and go to state 64
+
+    type                           shift and go to state 72
+
+state 49
+
+    (4) var -> $ attr init . ;
+
+    ;               shift and go to state 73
+
+
+state 50
+
+    (6) init -> = . EXPR
+
+    EXPR            shift and go to state 74
+
+
+state 51
+
+    (7) init -> empty .
+
+    ;               reduce using rule 7 (init -> empty .)
+
+
+state 52
+
+    (44) while_block -> WHILE ( . EXPR ) block
+
+    EXPR            shift and go to state 75
+
+
+state 53
+
+    (46) print_stmt -> PRINT ( . EXPR ) ;
+
+    EXPR            shift and go to state 76
+
+
+state 54
+
+    (47) return -> RETURN EXPR . ;
+
+    ;               shift and go to state 77
+
+
+state 55
+
+    (48) return -> RETURN ; .
+
+    $end            reduce using rule 48 (return -> RETURN ; .)
+    }               reduce using rule 48 (return -> RETURN ; .)
+
+
+state 56
+
+    (40) assignment -> prop = . EXPR ;
+
+    EXPR            shift and go to state 78
+
+
+state 57
+
+    (51) number -> INT .
+
+    {               reduce using rule 51 (number -> INT .)
+    SKIP            reduce using rule 51 (number -> INT .)
+    FOR_TO          reduce using rule 51 (number -> INT .)
+
+
+state 58
+
+    (50) number -> FLOAT .
+
+    {               reduce using rule 50 (number -> FLOAT .)
+    SKIP            reduce using rule 50 (number -> FLOAT .)
+    FOR_TO          reduce using rule 50 (number -> FLOAT .)
+
+
+state 59
+
+    (45) for_block -> FOR number . FOR_TO number SKIP number block
+
+    FOR_TO          shift and go to state 79
+
+
+state 60
+
+    (43) if_block -> IF ( . EXPR ) block
+
+    EXPR            shift and go to state 80
+
+
+state 61
+
+    (41) prop -> THIS . . ID
+
+    ID              shift and go to state 81
+
+
+state 62
+
+    (9) type -> FLOAT_TYPE .
+
+    =               reduce using rule 9 (type -> FLOAT_TYPE .)
+    ;               reduce using rule 9 (type -> FLOAT_TYPE .)
+    ,               reduce using rule 9 (type -> FLOAT_TYPE .)
+    )               reduce using rule 9 (type -> FLOAT_TYPE .)
+    (               reduce using rule 9 (type -> FLOAT_TYPE .)
+
+
+state 63
+
+    (12) return_type -> VOID .
+
+    (               reduce using rule 12 (return_type -> VOID .)
+
+
+state 64
+
+    (11) type -> BOOLEAN_TYPE .
+
+    =               reduce using rule 11 (type -> BOOLEAN_TYPE .)
+    ;               reduce using rule 11 (type -> BOOLEAN_TYPE .)
+    ,               reduce using rule 11 (type -> BOOLEAN_TYPE .)
+    )               reduce using rule 11 (type -> BOOLEAN_TYPE .)
+    (               reduce using rule 11 (type -> BOOLEAN_TYPE .)
+
+
+state 65
+
+    (10) type -> STRING_TYPE .
+
+    =               reduce using rule 10 (type -> STRING_TYPE .)
+    ;               reduce using rule 10 (type -> STRING_TYPE .)
+    ,               reduce using rule 10 (type -> STRING_TYPE .)
+    )               reduce using rule 10 (type -> STRING_TYPE .)
+    (               reduce using rule 10 (type -> STRING_TYPE .)
+
+
+state 66
+
+    (8) type -> INT_TYPE .
+
+    =               reduce using rule 8 (type -> INT_TYPE .)
+    ;               reduce using rule 8 (type -> INT_TYPE .)
+    ,               reduce using rule 8 (type -> INT_TYPE .)
+    )               reduce using rule 8 (type -> INT_TYPE .)
+    (               reduce using rule 8 (type -> INT_TYPE .)
+
+
+state 67
+
+    (24) function -> # ID : return_type . params func_block
+    (25) params -> . ( attrs )
+
+    (               shift and go to state 82
+
+    params                         shift and go to state 83
+
+state 68
+
+    (13) return_type -> type .
+
+    (               reduce using rule 13 (return_type -> type .)
+
+
+state 69
+
+    (19) class_block -> { vars constructor . functions }
+    (22) functions -> . function functions
+    (23) functions -> . empty
+    (24) function -> . # ID : return_type params func_block
+    (52) empty -> .
+
+    #               shift and go to state 9
+    }               reduce using rule 52 (empty -> .)
+
+    function                       shift and go to state 7
+    functions                      shift and go to state 84
+    empty                          shift and go to state 10
+
+state 70
+
+    (21) constructor -> empty .
+
+    #               reduce using rule 21 (constructor -> empty .)
+    }               reduce using rule 21 (constructor -> empty .)
+
+
+state 71
+
+    (20) constructor -> ~ . ID params func_block
+
+    ID              shift and go to state 85
+
+
+state 72
+
+    (5) attr -> ID : type .
+
+    =               reduce using rule 5 (attr -> ID : type .)
+    ;               reduce using rule 5 (attr -> ID : type .)
+    ,               reduce using rule 5 (attr -> ID : type .)
+    )               reduce using rule 5 (attr -> ID : type .)
+
+
+state 73
+
+    (4) var -> $ attr init ; .
+
+    $               reduce using rule 4 (var -> $ attr init ; .)
+    ~               reduce using rule 4 (var -> $ attr init ; .)
+    #               reduce using rule 4 (var -> $ attr init ; .)
+    }               reduce using rule 4 (var -> $ attr init ; .)
+    EXPR            reduce using rule 4 (var -> $ attr init ; .)
+    IF              reduce using rule 4 (var -> $ attr init ; .)
+    WHILE           reduce using rule 4 (var -> $ attr init ; .)
+    FOR             reduce using rule 4 (var -> $ attr init ; .)
+    PRINT           reduce using rule 4 (var -> $ attr init ; .)
+    RETURN          reduce using rule 4 (var -> $ attr init ; .)
+    THIS            reduce using rule 4 (var -> $ attr init ; .)
+    ID              reduce using rule 4 (var -> $ attr init ; .)
+    $end            reduce using rule 4 (var -> $ attr init ; .)
+
+
+state 74
+
+    (6) init -> = EXPR .
+
+    ;               reduce using rule 6 (init -> = EXPR .)
+
+
+state 75
+
+    (44) while_block -> WHILE ( EXPR . ) block
+
+    )               shift and go to state 86
+
+
+state 76
+
+    (46) print_stmt -> PRINT ( EXPR . ) ;
+
+    )               shift and go to state 87
+
+
+state 77
+
+    (47) return -> RETURN EXPR ; .
+
+    $end            reduce using rule 47 (return -> RETURN EXPR ; .)
+    }               reduce using rule 47 (return -> RETURN EXPR ; .)
+
+
+state 78
+
+    (40) assignment -> prop = EXPR . ;
+
+    ;               shift and go to state 88
+
+
+state 79
+
+    (45) for_block -> FOR number FOR_TO . number SKIP number block
+    (50) number -> . FLOAT
+    (51) number -> . INT
+
+    FLOAT           shift and go to state 58
+    INT             shift and go to state 57
+
+    number                         shift and go to state 89
+
+state 80
+
+    (43) if_block -> IF ( EXPR . ) block
+
+    )               shift and go to state 90
+
+
+state 81
+
+    (41) prop -> THIS . ID .
+
+    =               reduce using rule 41 (prop -> THIS . ID .)
+
+
+state 82
+
+    (25) params -> ( . attrs )
+    (26) attrs -> . attr attrs_alt
+    (27) attrs -> . empty
+    (5) attr -> . ID : type
+    (52) empty -> .
+
+    ID              shift and go to state 24
+    )               reduce using rule 52 (empty -> .)
+
+    attrs                          shift and go to state 91
+    empty                          shift and go to state 92
+    attr                           shift and go to state 93
+
+state 83
+
+    (24) function -> # ID : return_type params . func_block
+    (30) func_block -> . { vars statements }
+
+    {               shift and go to state 95
+
+    func_block                     shift and go to state 94
+
+state 84
+
+    (19) class_block -> { vars constructor functions . }
+
+    }               shift and go to state 96
+
+
+state 85
+
+    (20) constructor -> ~ ID . params func_block
+    (25) params -> . ( attrs )
+
+    (               shift and go to state 82
+
+    params                         shift and go to state 97
+
+state 86
+
+    (44) while_block -> WHILE ( EXPR ) . block
+    (49) block -> . { statements }
+
+    {               shift and go to state 98
+
+    block                          shift and go to state 99
+
+state 87
+
+    (46) print_stmt -> PRINT ( EXPR ) . ;
+
+    ;               shift and go to state 100
+
+
+state 88
+
+    (40) assignment -> prop = EXPR ; .
+
+    $end            reduce using rule 40 (assignment -> prop = EXPR ; .)
+    }               reduce using rule 40 (assignment -> prop = EXPR ; .)
+
+
+state 89
+
+    (45) for_block -> FOR number FOR_TO number . SKIP number block
+
+    SKIP            shift and go to state 101
+
+
+state 90
+
+    (43) if_block -> IF ( EXPR ) . block
+    (49) block -> . { statements }
+
+    {               shift and go to state 98
+
+    block                          shift and go to state 102
+
+state 91
+
+    (25) params -> ( attrs . )
+
+    )               shift and go to state 103
+
+
+state 92
+
+    (27) attrs -> empty .
+
+    )               reduce using rule 27 (attrs -> empty .)
+
+
+state 93
+
+    (26) attrs -> attr . attrs_alt
+    (28) attrs_alt -> . , attr attrs_alt
+    (29) attrs_alt -> . empty
+    (52) empty -> .
+
+    ,               shift and go to state 104
+    )               reduce using rule 52 (empty -> .)
+
+    empty                          shift and go to state 105
+    attrs_alt                      shift and go to state 106
+
+state 94
+
+    (24) function -> # ID : return_type params func_block .
+
+    #               reduce using rule 24 (function -> # ID : return_type params func_block .)
+    }               reduce using rule 24 (function -> # ID : return_type params func_block .)
+    $               reduce using rule 24 (function -> # ID : return_type params func_block .)
+    EXPR            reduce using rule 24 (function -> # ID : return_type params func_block .)
+    IF              reduce using rule 24 (function -> # ID : return_type params func_block .)
+    WHILE           reduce using rule 24 (function -> # ID : return_type params func_block .)
+    FOR             reduce using rule 24 (function -> # ID : return_type params func_block .)
+    PRINT           reduce using rule 24 (function -> # ID : return_type params func_block .)
+    RETURN          reduce using rule 24 (function -> # ID : return_type params func_block .)
+    THIS            reduce using rule 24 (function -> # ID : return_type params func_block .)
+    ID              reduce using rule 24 (function -> # ID : return_type params func_block .)
+    $end            reduce using rule 24 (function -> # ID : return_type params func_block .)
+
+
+state 95
+
+    (30) func_block -> { . vars statements }
+    (2) vars -> . var vars
+    (3) vars -> . empty
+    (4) var -> . $ attr init ;
+    (52) empty -> .
+
+    $               shift and go to state 16
+    EXPR            reduce using rule 52 (empty -> .)
+    IF              reduce using rule 52 (empty -> .)
+    WHILE           reduce using rule 52 (empty -> .)
+    FOR             reduce using rule 52 (empty -> .)
+    PRINT           reduce using rule 52 (empty -> .)
+    RETURN          reduce using rule 52 (empty -> .)
+    THIS            reduce using rule 52 (empty -> .)
+    ID              reduce using rule 52 (empty -> .)
+    }               reduce using rule 52 (empty -> .)
+
+    vars                           shift and go to state 107
+    var                            shift and go to state 18
+    empty                          shift and go to state 19
+
+state 96
+
+    (19) class_block -> { vars constructor functions } .
+
+    @               reduce using rule 19 (class_block -> { vars constructor functions } .)
+    #               reduce using rule 19 (class_block -> { vars constructor functions } .)
+    $               reduce using rule 19 (class_block -> { vars constructor functions } .)
+    EXPR            reduce using rule 19 (class_block -> { vars constructor functions } .)
+    IF              reduce using rule 19 (class_block -> { vars constructor functions } .)
+    WHILE           reduce using rule 19 (class_block -> { vars constructor functions } .)
+    FOR             reduce using rule 19 (class_block -> { vars constructor functions } .)
+    PRINT           reduce using rule 19 (class_block -> { vars constructor functions } .)
+    RETURN          reduce using rule 19 (class_block -> { vars constructor functions } .)
+    THIS            reduce using rule 19 (class_block -> { vars constructor functions } .)
+    ID              reduce using rule 19 (class_block -> { vars constructor functions } .)
+    $end            reduce using rule 19 (class_block -> { vars constructor functions } .)
+
+
+state 97
+
+    (20) constructor -> ~ ID params . func_block
+    (30) func_block -> . { vars statements }
+
+    {               shift and go to state 95
+
+    func_block                     shift and go to state 108
+
+state 98
+
+    (49) block -> { . statements }
+    (31) statements -> . statement
+    (32) statements -> . empty
+    (33) statement -> . assignment
+    (34) statement -> . if_block
+    (35) statement -> . while_block
+    (36) statement -> . for_block
+    (37) statement -> . print_stmt
+    (38) statement -> . EXPR
+    (39) statement -> . return
+    (52) empty -> .
+    (40) assignment -> . prop = EXPR ;
+    (43) if_block -> . IF ( EXPR ) block
+    (44) while_block -> . WHILE ( EXPR ) block
+    (45) for_block -> . FOR number FOR_TO number SKIP number block
+    (46) print_stmt -> . PRINT ( EXPR ) ;
+    (47) return -> . RETURN EXPR ;
+    (48) return -> . RETURN ;
+    (41) prop -> . THIS . ID
+    (42) prop -> . ID
+
+    EXPR            shift and go to state 43
+    }               reduce using rule 52 (empty -> .)
+    IF              shift and go to state 39
+    WHILE           shift and go to state 28
+    FOR             shift and go to state 35
+    PRINT           shift and go to state 29
+    RETURN          shift and go to state 30
+    THIS            shift and go to state 40
+    ID              shift and go to state 38
+
+    for_block                      shift and go to state 26
+    statements                     shift and go to state 109
+    print_stmt                     shift and go to state 36
+    assignment                     shift and go to state 37
+    if_block                       shift and go to state 41
+    prop                           shift and go to state 31
+    while_block                    shift and go to state 42
+    statement                      shift and go to state 32
+    return                         shift and go to state 34
+    empty                          shift and go to state 33
+
+state 99
+
+    (44) while_block -> WHILE ( EXPR ) block .
+
+    $end            reduce using rule 44 (while_block -> WHILE ( EXPR ) block .)
+    }               reduce using rule 44 (while_block -> WHILE ( EXPR ) block .)
+
+
+state 100
+
+    (46) print_stmt -> PRINT ( EXPR ) ; .
+
+    }               reduce using rule 46 (print_stmt -> PRINT ( EXPR ) ; .)
+    $end            reduce using rule 46 (print_stmt -> PRINT ( EXPR ) ; .)
+
+
+state 101
+
+    (45) for_block -> FOR number FOR_TO number SKIP . number block
+    (50) number -> . FLOAT
+    (51) number -> . INT
+
+    FLOAT           shift and go to state 58
+    INT             shift and go to state 57
+
+    number                         shift and go to state 110
+
+state 102
+
+    (43) if_block -> IF ( EXPR ) block .
+
+    $end            reduce using rule 43 (if_block -> IF ( EXPR ) block .)
+    }               reduce using rule 43 (if_block -> IF ( EXPR ) block .)
+
+
+state 103
+
+    (25) params -> ( attrs ) .
+
+    {               reduce using rule 25 (params -> ( attrs ) .)
+
+
+state 104
+
+    (28) attrs_alt -> , . attr attrs_alt
+    (5) attr -> . ID : type
+
+    ID              shift and go to state 24
+
+    attr                           shift and go to state 111
+
+state 105
+
+    (29) attrs_alt -> empty .
+
+    )               reduce using rule 29 (attrs_alt -> empty .)
+
+
+state 106
+
+    (26) attrs -> attr attrs_alt .
+
+    )               reduce using rule 26 (attrs -> attr attrs_alt .)
+
+
+state 107
+
+    (30) func_block -> { vars . statements }
+    (31) statements -> . statement
+    (32) statements -> . empty
+    (33) statement -> . assignment
+    (34) statement -> . if_block
+    (35) statement -> . while_block
+    (36) statement -> . for_block
+    (37) statement -> . print_stmt
+    (38) statement -> . EXPR
+    (39) statement -> . return
+    (52) empty -> .
+    (40) assignment -> . prop = EXPR ;
+    (43) if_block -> . IF ( EXPR ) block
+    (44) while_block -> . WHILE ( EXPR ) block
+    (45) for_block -> . FOR number FOR_TO number SKIP number block
+    (46) print_stmt -> . PRINT ( EXPR ) ;
+    (47) return -> . RETURN EXPR ;
+    (48) return -> . RETURN ;
+    (41) prop -> . THIS . ID
+    (42) prop -> . ID
+
+    EXPR            shift and go to state 43
+    }               reduce using rule 52 (empty -> .)
+    IF              shift and go to state 39
+    WHILE           shift and go to state 28
+    FOR             shift and go to state 35
+    PRINT           shift and go to state 29
+    RETURN          shift and go to state 30
+    THIS            shift and go to state 40
+    ID              shift and go to state 38
+
+    for_block                      shift and go to state 26
+    statements                     shift and go to state 112
+    print_stmt                     shift and go to state 36
+    assignment                     shift and go to state 37
+    if_block                       shift and go to state 41
+    prop                           shift and go to state 31
+    while_block                    shift and go to state 42
+    statement                      shift and go to state 32
+    return                         shift and go to state 34
+    empty                          shift and go to state 33
+
+state 108
+
+    (20) constructor -> ~ ID params func_block .
+
+    #               reduce using rule 20 (constructor -> ~ ID params func_block .)
+    }               reduce using rule 20 (constructor -> ~ ID params func_block .)
+
+
+state 109
+
+    (49) block -> { statements . }
+
+    }               shift and go to state 113
+
+
+state 110
+
+    (45) for_block -> FOR number FOR_TO number SKIP number . block
+    (49) block -> . { statements }
+
+    {               shift and go to state 98
+
+    block                          shift and go to state 114
+
+state 111
+
+    (28) attrs_alt -> , attr . attrs_alt
+    (28) attrs_alt -> . , attr attrs_alt
+    (29) attrs_alt -> . empty
+    (52) empty -> .
+
+    ,               shift and go to state 104
+    )               reduce using rule 52 (empty -> .)
+
+    empty                          shift and go to state 105
+    attrs_alt                      shift and go to state 115
+
+state 112
+
+    (30) func_block -> { vars statements . }
+
+    }               shift and go to state 116
+
+
+state 113
+
+    (49) block -> { statements } .
+
+    $end            reduce using rule 49 (block -> { statements } .)
+    }               reduce using rule 49 (block -> { statements } .)
+
+
+state 114
+
+    (45) for_block -> FOR number FOR_TO number SKIP number block .
+
+    }               reduce using rule 45 (for_block -> FOR number FOR_TO number SKIP number block .)
+    $end            reduce using rule 45 (for_block -> FOR number FOR_TO number SKIP number block .)
+
+
+state 115
+
+    (28) attrs_alt -> , attr attrs_alt .
+
+    )               reduce using rule 28 (attrs_alt -> , attr attrs_alt .)
+
+
+state 116
+
+    (30) func_block -> { vars statements } .
+
+    #               reduce using rule 30 (func_block -> { vars statements } .)
+    $               reduce using rule 30 (func_block -> { vars statements } .)
+    EXPR            reduce using rule 30 (func_block -> { vars statements } .)
+    IF              reduce using rule 30 (func_block -> { vars statements } .)
+    WHILE           reduce using rule 30 (func_block -> { vars statements } .)
+    FOR             reduce using rule 30 (func_block -> { vars statements } .)
+    PRINT           reduce using rule 30 (func_block -> { vars statements } .)
+    RETURN          reduce using rule 30 (func_block -> { vars statements } .)
+    THIS            reduce using rule 30 (func_block -> { vars statements } .)
+    ID              reduce using rule 30 (func_block -> { vars statements } .)
+    $end            reduce using rule 30 (func_block -> { vars statements } .)
+    }               reduce using rule 30 (func_block -> { vars statements } .)
+

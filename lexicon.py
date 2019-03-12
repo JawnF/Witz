@@ -5,8 +5,8 @@ reserved = {
 	'int' 		: 'INT_TYPE',
 	'float' 	: 'FLOAT_TYPE',
     'bool'      : 'BOOLEAN_TYPE',
-    'str'       : 'STRING_TYPE'
-    'input'     : 'INPUT',
+    'str'       : 'STRING_TYPE',
+    'read'   	: 'READ',
 	'print' 	: 'PRINT',
 	'if' 		: 'IF',
 	'else' 		: 'ELSE',
@@ -23,7 +23,9 @@ reserved = {
     'peek'      : 'PEEK',
     'push'      : 'PUSH',
     'stack'     : 'STACK',
-    'this'      : 'THIS'
+    'this'      : 'THIS',
+	'void'		: 'VOID',
+	'expr'		: 'EXPR'
 	}
 
 # Pasa's default tokens
@@ -41,7 +43,7 @@ tokens = [
 	] + list(reserved.values())
 
 # Estos son los caracteres que el lexer individualmente como tokens
-literals = r';,.:{}()=<>+-*/%^!$@#'
+literals = r';,.:{}()=<>+-*/%^!$@#~'
 
 # Token Rules
 def t_ID(t):
