@@ -151,7 +151,6 @@ def p_expr(p):
 
 def p_exp(p):
     '''exp : read
-           | math_exp
            | logic_exp
            | assign
     '''
@@ -214,7 +213,6 @@ def p_log_b(p):
     '''log_b : '(' logic_exp ')' 
              | bool
              | comparison
-             | math_exp
     '''
 
 def p_bool(p):
@@ -224,6 +222,7 @@ def p_bool(p):
 
 def p_comparison(p):
     '''comparison : math_exp comparison_op math_exp
+                  | math_exp
     '''
 
 def p_comparison_op(p):
