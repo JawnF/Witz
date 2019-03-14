@@ -51,7 +51,7 @@ def t_ID(t):
 	return t
 
 def t_FLOAT(t):
-	r'[0-9]*.[0-9]+'
+	r'[0-9]*\.[0-9]+'
 	t.value = float(t.value)
 	return t
 
@@ -79,5 +79,7 @@ t_RETURN = r'<-'
 t_FOR_TO = r'->'
 
 t_ignore = ' \t\n'
+
+
 
 lex.lex()

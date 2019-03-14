@@ -1,6 +1,7 @@
 import ply.yacc as yacc
 from lexicon import tokens
 # Grammar for the general structure of the program
+
 def p_program(p):
     '''program : classes functions vars statements
     '''
@@ -10,6 +11,7 @@ def p_vars(p):
             | empty
     '''
 
+# ----------------------- Aqui vamos en la definicion de puntos de tabla de simbolos
 def p_var(p):
     '''var : '$' attr init ';'
     '''
@@ -40,6 +42,7 @@ def p_classes(p):
     '''classes : class classes
                | empty
     '''
+    print(p[0])
 
 def p_class(p):
     '''class : '@' ID inheritance class_block
@@ -185,6 +188,7 @@ def p_term_alt(p):
 def p_factor(p):
     '''factor : ID
               | number
+              | call
               | '(' math_exp ')' 
     '''
 
@@ -208,9 +212,9 @@ def p_log_a_alt(p):
 
 def p_log_b(p):
     '''log_b : '(' logic_exp ')' 
-             | call
              | bool
              | comparison
+             | math_exp
     '''
 
 def p_bool(p):
