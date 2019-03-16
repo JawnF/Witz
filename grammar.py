@@ -1,7 +1,7 @@
 import ply.yacc as yacc
 from lexicon import tokens
-# Grammar for the general structure of the program
 
+# Grammar for the general structure of the program
 def p_program(p):
     '''program : classes functions vars statements
     '''
@@ -11,7 +11,6 @@ def p_vars(p):
             | empty
     '''
 
-# ----------------------- Aqui vamos en la definicion de puntos de tabla de simbolos
 def p_var(p):
     '''var : '$' attr init ';'
     '''
@@ -19,7 +18,7 @@ def p_var(p):
 def p_attr(p):
     '''attr : ID ':' type
     '''
-    
+
 def p_init(p):
     '''init : '=' exp
             | empty
@@ -31,6 +30,7 @@ def p_type(p):
             | STRING_TYPE
             | BOOLEAN_TYPE
             | STACK
+            | ID
     '''
 
 def p_return_type(p):
@@ -42,21 +42,25 @@ def p_classes(p):
     '''classes : class classes
                | empty
     '''
-    print(p[0])
 
 def p_class(p):
-    '''class : '@' ID inheritance class_block
+    '''class : '@' ID inheritance scope_class class_block
     '''
+
 
 def p_inheritance(p):
     '''inheritance : '<' ID '>'
                    | empty
     '''
+    if len(p) > 2:
+        p[0] = p[2]
+    else:
+        p[0] = None
     
 def p_class_block(p):
     '''class_block : '{' vars constructor functions '}'
     '''    
-
+    
 def p_constructor(p):
     '''constructor : '~' ID params func_block
                    | empty
@@ -68,7 +72,7 @@ def p_functions(p):
     '''
 
 def p_function(p):
-    '''function : '#' ID ':' return_type params func_block
+    '''function : '#' ID ':' return_type params scope_function func_block
     '''
 
 def p_params(p):
@@ -266,3 +270,24 @@ def p_error(p):
     print("Syntax error in input!")
 
 parser = yacc.yacc()
+
+#
+# 
+# Semantic actions 
+# 
+# 
+
+from semantic.symboltable import SymbolTable
+
+table = SymbolTable()
+
+# Regla que se encarga de crear y abrir el scope de la clase
+def p_scope_class(p):
+    '''scope_class:
+    '''
+    table.open_class()
+
+# Regla que se encarga de crear el scope de la funcion
+def p_scope_function(p):
+    '''scope_function : 
+    '''

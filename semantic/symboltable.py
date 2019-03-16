@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*- 
 class SymbolTable:
     current_scope = 'global'
     search_scope = 'global'
@@ -17,7 +19,5 @@ class SymbolTable:
     def create_symbol(self, token):
         '''
         Crea un símbolo apartir del token que es pasado por el parser.
-        
         '''
-    
     
