@@ -15,8 +15,21 @@ class SymbolTable:
         '''Recibe el nombre del ID a buscar, regresa true si
            lo encontró en el scope actual de la semántica,
         '''
-        if self.table[self.current_scope].symbols[name]:
-            raise Exception('Symbol already exists')
+        self.set_search_scope()
+        exist = self.look_current_search_scope(name)
+        if not exist:
+            raise Exception('Value doesn\'t exist')
+        return exist
+    
+    def neg_lookup(self, name):
+        '''Recibe el nombre del ID a buscar, regresa false si
+           no lo encontró en el scope actual de la semántica,
+        '''
+        self.search_scope = self.current_scope
+        exist = self.look_current_search_scope(name)
+        if exist:
+            raise Exception('Value already exists')
+        return False
 
     def store(self, id, symbol, scope_type):
         '''
@@ -60,3 +73,76 @@ class SymbolTable:
             self.store(name, symbol, 'function')
         else:
             raise Exception('Constructor must have the same name as the class')
+    
+    def look_current_search_scope(self, name):
+        self.set_search_scope()
+        while self.search_scope:
+            if name in self.table[self.search_scope].symbols:
+                return self.table[self.search_scope].symbols[name]
+            if self.search_scope == 'global':
+                return False
+            self.search_scope = self.scope().parent
+
+    def local_neg_lookup(self, name):
+        if name in self.scope().symbols:
+            raise Exception('Value '+name+' already exists!')
+        return False
+
+    def check_new(self, constructor, var_type):
+        if not constructor == var_type:
+            raise Exception('Constructor doesn\'t match variable type')
+        return True
+    
+    def check_class_scope(self):
+        self.set_search_scope()
+        self.search_class_scope()
+    
+    def search_class_scope(self):
+        if self.search_scope == self.root:
+            raise Exception('Not in a class scope')
+        elif self.table[self.search_scope].type == 'class':
+            return True
+        self.search_scope = self.scope().parent
+        self.search_class_scope()
+    
+    def check_class_property(self, name):
+        current_class = self.current_class()
+        if not current_class or not name in current_class.symbols:
+            raise Exception('Property does not exist.')
+        else:
+            return True
+
+    def current_class(self):
+        self.set_search_scope()
+        while self.search_scope:
+            if self.table[self.search_scope].type == 'class':
+                return self.table[self.search_scope]
+            self.search_scope = self.table[self.search_scope].parent  
+        return False
+
+    def set_search_scope(self):
+        self.search_scope = self.current_scope
+
+    def check_variable(self, name):
+        self.set_search_scope()
+        while self.search_scope:
+            exist = self.table[self.search_scope].symbols[name]
+            if exist and exist.symbol_type == 'variable':
+                return exist
+            self.search_scope = self.table[self.search_scope].parent
+
+    def has_property(self, symbol, name):
+        if not symbol.is_class_instance():
+            return False
+        object_class = symbol.var_type
+        class_scope = self.table[object_class]
+        if not name in class_scope.symbols:
+            raise Exception('Variable has no property '+name)
+        return True
+
+    def check_property(self, name):
+        value = self.lookup(name)
+        if value.symbol_type == 'class':
+            raise Exception('Invalid use of class '+name)
+        else:
+            return value

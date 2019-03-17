@@ -26,11 +26,12 @@ def p_var(p):
 def p_attr(p):
     '''attr : ID ':' type
     '''
+    table.neg_lookup(p[1])
     p[0] = (p[1], p[3])
-# ------------------------- aqui vamos jsjsxd
 
 def p_init(p):
     '''init : '=' exp
+            | '=' NEW constructor_call
             | empty
     '''
 
@@ -85,7 +86,7 @@ def p_functions(p):
     '''
 
 def p_function(p):
-    '''function : '#' ID ':' return_type params scope_function func_block
+    '''function : '#' ID neg_lookup ':' return_type params scope_function func_block
     '''
     table.close_scope()
 
@@ -131,15 +132,34 @@ def p_statement(p):
     '''
 
 def p_assign(p):
-    '''assign : prop '=' expr
-              | prop '=' NEW ID
+    '''assign : prop '=' exp
     '''
+
+def p_constructor_call(p):
+    '''constructor_call : ID '(' args ')'
+    '''
+    constructor = p[1]
+    var_type = p[-3][1]
+    table.check_new(constructor, var_type)
 
 def p_prop(p):
     '''prop : THIS '.' ID
             | ID '.' ID
             | ID
     '''
+    if p[1] == 'this':
+        # primera regla
+        table.check_class_scope()
+        table.check_class_property(p[3])
+    elif len(p) == 4:
+        # segunda regla
+        var_symbol = table.check_variable(p[1])
+        table.has_property(var_symbol, p[3])
+    else:
+        # tercera regla
+        table.check_property(p[1])
+
+    
 
 def p_if_block(p):
     '''if_block : IF '(' exp ')' block
@@ -162,6 +182,7 @@ def p_return(p):
     '''return : RETURN exp ';'
               | RETURN ';'
     '''
+# ------------------------- aqui vamos jsjsxd
 
 def p_block(p):
     '''block : '{' statements '}'
@@ -180,6 +201,7 @@ def p_exp(p):
     '''exp : read
            | logic_exp
            | assign
+           | STRING
     '''
 
 def p_read(p):
@@ -305,7 +327,7 @@ def p_scope_class(p):
 def p_scope_function(p):
     '''scope_function : empty
     '''
-    function_name = p[-4]
+    function_name = p[-5]
     return_type = p[-2]
     params = p[-1]
     table.store(function_name, FunctionSymbol(return_type, params),'function')
@@ -326,9 +348,15 @@ def p_check_class(p):
     '''
     table.check_class(p[-1])
 
+def p_neg_lookup(p):
+    '''neg_lookup : empty
+    '''
+    table.local_neg_lookup(p[-1])
+
 parser = yacc.yacc()
 
 # 
 # Nos quedamos en verificar que los nombres de nuevas variables no existan y que los nombres de 
 # variables que se usan si existan en cualquier scope ascendiente 
 # 
+
