@@ -21,6 +21,8 @@ def p_var(p):
     '''var : '$' attr init ';'
     '''
     symbol = p[2]
+    if symbol[1] == 'stack' and p[3]:
+        raise Exception('Stack type variables cannot be initialized.')
     table.store(symbol[0], VariableSymbol(symbol[1], p[3] != None), False)
 
 def p_attr(p):
@@ -34,6 +36,7 @@ def p_init(p):
             | '=' NEW constructor_call
             | empty
     '''
+    p[0] = not not p[1]
 
 def p_type(p):
     '''type : INT_TYPE
@@ -150,14 +153,14 @@ def p_prop(p):
     if p[1] == 'this':
         # primera regla
         table.check_class_scope()
-        table.check_class_property(p[3])
+        p[0] = table.check_class_property(p[3])
     elif len(p) == 4:
         # segunda regla
         var_symbol = table.check_variable(p[1])
-        table.has_property(var_symbol, p[3])
+        p[0] = table.has_property(var_symbol, p[3])
     else:
         # tercera regla
-        table.check_property(p[1])
+        p[0] = table.check_property(p[1])
 
     
 
@@ -182,7 +185,6 @@ def p_return(p):
     '''return : RETURN exp ';'
               | RETURN ';'
     '''
-# ------------------------- aqui vamos jsjsxd
 
 def p_block(p):
     '''block : '{' statements '}'
@@ -209,7 +211,7 @@ def p_read(p):
     '''
 
 def p_string(p):
-    '''string : ID
+    '''string : ID check_string
               | STRING
     '''
 
@@ -234,11 +236,12 @@ def p_term_alt(p):
     '''
 
 def p_factor(p):
-    '''factor : ID
+    '''factor : ID check_number
               | number
               | call
               | '(' math_exp ')' 
     '''
+
 
 def p_logic_exp(p):
     '''logic_exp : log_a logic_exp_alt
@@ -283,27 +286,37 @@ def p_comparison_op(p):
 
 def p_call(p):
     '''call : prop '(' args ')'
-            | stack_call '(' args ')'
+            | stack_call
     '''
+    table.check_params(p[1], p[3])
 
 def p_args(p):
     '''args : exp args_aux
             | empty
     '''
+    if len(p) > 2:
+        p[0] = [p[1]] + p[2]
+    else:
+        p[0] = []
 
 def p_args_aux(p):
     '''args_aux : ',' exp args_aux
                 | empty
     '''
+    if len(p) > 2:
+        p[0] = [p[2]] + p[3]
+    else:
+        p[0] = []
 
 def p_stack_call(p):
-    '''stack_call : prop stack_method
+    '''stack_call : ID '.' stack_method
     '''
+    table.check_stack(p[1])
 
 def p_stack_method(p):
-    '''stack_method : POP
-                    | PUSH
-                    | PEEK
+    '''stack_method : POP '(' ')'
+                    | PUSH '(' ID check_variable ')'
+                    | PEEK '(' ')'
     '''
 
 def p_empty(p):
@@ -313,6 +326,7 @@ def p_empty(p):
 def p_error(p):
     print("Syntax error in input!")
 
+# ------------------------- aqui vamos jsjsxd
 # Semantic actions 
 
 # Regla que se encarga de crear y abrir el scope de la clase
@@ -341,12 +355,22 @@ def p_scope_constructor(p):
 def p_check_variables(p):
     '''check_variable : empty
     '''
-    table.lookup(p[-1]) 
+    table.check_variable(p[-1]) 
 
 def p_check_class(p):
     '''check_class : empty
     '''
     table.check_class(p[-1])
+
+def p_check_string(p):
+    '''check_string : empty
+    '''
+    table.check_string(p[-1])
+
+def p_check_number(p):
+    '''check_number : empty
+    '''
+    table.check_number(p[-1])
 
 def p_neg_lookup(p):
     '''neg_lookup : empty
@@ -354,9 +378,3 @@ def p_neg_lookup(p):
     table.local_neg_lookup(p[-1])
 
 parser = yacc.yacc()
-
-# 
-# Nos quedamos en verificar que los nombres de nuevas variables no existan y que los nombres de 
-# variables que se usan si existan en cualquier scope ascendiente 
-# 
-

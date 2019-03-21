@@ -65,7 +65,7 @@ Rule 59    exp -> logic_exp
 Rule 60    exp -> assign
 Rule 61    exp -> STRING
 Rule 62    read -> READ ( string )
-Rule 63    string -> ID
+Rule 63    string -> ID check_string
 Rule 64    string -> STRING
 Rule 65    math_exp -> term math_exp_alt
 Rule 66    math_exp_alt -> + term math_exp_alt
@@ -75,7 +75,7 @@ Rule 69    term -> factor term_alt
 Rule 70    term_alt -> * factor term_alt
 Rule 71    term_alt -> / factor term_alt
 Rule 72    term_alt -> empty
-Rule 73    factor -> ID
+Rule 73    factor -> ID check_number
 Rule 74    factor -> number
 Rule 75    factor -> call
 Rule 76    factor -> ( math_exp )
@@ -97,34 +97,36 @@ Rule 91    comparison_op -> >
 Rule 92    comparison_op -> EQ
 Rule 93    comparison_op -> NE
 Rule 94    call -> prop ( args )
-Rule 95    call -> stack_call ( args )
+Rule 95    call -> stack_call
 Rule 96    args -> exp args_aux
 Rule 97    args -> empty
 Rule 98    args_aux -> , exp args_aux
 Rule 99    args_aux -> empty
-Rule 100   stack_call -> prop stack_method
-Rule 101   stack_method -> POP
-Rule 102   stack_method -> PUSH
-Rule 103   stack_method -> PEEK
+Rule 100   stack_call -> ID . stack_method
+Rule 101   stack_method -> POP ( )
+Rule 102   stack_method -> PUSH ( ID check_variable )
+Rule 103   stack_method -> PEEK ( )
 Rule 104   empty -> <empty>
 Rule 105   scope_class -> empty
 Rule 106   scope_function -> empty
 Rule 107   scope_constructor -> empty
 Rule 108   check_variable -> empty
 Rule 109   check_class -> empty
-Rule 110   neg_lookup -> empty
+Rule 110   check_string -> empty
+Rule 111   check_number -> empty
+Rule 112   neg_lookup -> empty
 
 Terminals, with rules where they appear
 
 #                    : 27
 $                    : 4
-(                    : 28 43 47 48 49 51 62 76 83 94 95
-)                    : 28 43 47 48 49 51 62 76 83 94 95
+(                    : 28 43 47 48 49 51 62 76 83 94 101 102 103
+)                    : 28 43 47 48 49 51 62 76 83 94 101 102 103
 *                    : 70
 +                    : 66
 ,                    : 31 98
 -                    : 67
-.                    : 44 45
+.                    : 44 45 100
 /                    : 71
 :                    : 5 27
 ;                    : 4 51 52 53 57
@@ -141,7 +143,7 @@ FLOAT                : 55
 FLOAT_TYPE           : 10
 FOR                  : 50
 FOR_TO               : 50
-ID                   : 5 14 19 20 23 27 43 44 45 45 46 63 73
+ID                   : 5 14 19 20 23 27 43 44 45 45 46 63 73 100 102
 IF                   : 47 48
 INT                  : 56
 INT_TYPE             : 9
@@ -169,7 +171,7 @@ error                :
 
 Nonterminals, with rules where they appear
 
-args                 : 43 94 95
+args                 : 43 94
 args_aux             : 96 98
 assign               : 60
 attr                 : 4 29 31
@@ -179,7 +181,9 @@ block                : 47 48 48 49 50
 bool                 : 84
 call                 : 75
 check_class          : 14 20
-check_variable       : 
+check_number         : 73
+check_string         : 63
+check_variable       : 102
 class                : 17
 class_block          : 19
 classes              : 1 17
@@ -187,7 +191,7 @@ comparison           : 85
 comparison_op        : 88
 constructor          : 22
 constructor_call     : 7
-empty                : 3 8 18 21 24 26 30 32 35 68 72 79 82 97 99 105 106 107 108 109 110
+empty                : 3 8 18 21 24 26 30 32 35 68 72 79 82 97 99 105 106 107 108 109 110 111 112
 exp                  : 6 42 47 48 49 51 52 57 96 98
 expr                 : 40
 factor               : 69 70 71
@@ -210,7 +214,7 @@ number               : 50 50 50 74
 params               : 23 27
 print_stmt           : 39
 program              : 0
-prop                 : 42 94 100
+prop                 : 42 94
 read                 : 58
 return               : 41
 return_type          : 27
@@ -584,15 +588,15 @@ state 17
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
+    (95) call -> . stack_call
+    (100) stack_call -> . ID . stack_method
 
     $end            reduce using rule 104 (empty -> .)
     IF              shift and go to state 54
@@ -671,6 +675,9 @@ state 19
 
     (3) vars -> empty .
 
+    ~               reduce using rule 3 (vars -> empty .)
+    #               reduce using rule 3 (vars -> empty .)
+    }               reduce using rule 3 (vars -> empty .)
     IF              reduce using rule 3 (vars -> empty .)
     WHILE           reduce using rule 3 (vars -> empty .)
     FOR             reduce using rule 3 (vars -> empty .)
@@ -686,15 +693,12 @@ state 19
     FLOAT           reduce using rule 3 (vars -> empty .)
     INT             reduce using rule 3 (vars -> empty .)
     $end            reduce using rule 3 (vars -> empty .)
-    ~               reduce using rule 3 (vars -> empty .)
-    #               reduce using rule 3 (vars -> empty .)
-    }               reduce using rule 3 (vars -> empty .)
 
 
 state 20
 
     (27) function -> # ID . neg_lookup : return_type params scope_function func_block
-    (110) neg_lookup -> . empty
+    (112) neg_lookup -> . empty
     (104) empty -> .
 
     :               reduce using rule 104 (empty -> .)
@@ -766,18 +770,18 @@ state 27
     /               reduce using rule 55 (number -> FLOAT .)
     +               reduce using rule 55 (number -> FLOAT .)
     -               reduce using rule 55 (number -> FLOAT .)
-    AND             reduce using rule 55 (number -> FLOAT .)
-    OR              reduce using rule 55 (number -> FLOAT .)
-    ;               reduce using rule 55 (number -> FLOAT .)
-    )               reduce using rule 55 (number -> FLOAT .)
-    ,               reduce using rule 55 (number -> FLOAT .)
     <               reduce using rule 55 (number -> FLOAT .)
     >               reduce using rule 55 (number -> FLOAT .)
     EQ              reduce using rule 55 (number -> FLOAT .)
     NE              reduce using rule 55 (number -> FLOAT .)
+    AND             reduce using rule 55 (number -> FLOAT .)
+    OR              reduce using rule 55 (number -> FLOAT .)
+    ,               reduce using rule 55 (number -> FLOAT .)
+    )               reduce using rule 55 (number -> FLOAT .)
+    ;               reduce using rule 55 (number -> FLOAT .)
+    {               reduce using rule 55 (number -> FLOAT .)
     SKIP            reduce using rule 55 (number -> FLOAT .)
     FOR_TO          reduce using rule 55 (number -> FLOAT .)
-    {               reduce using rule 55 (number -> FLOAT .)
 
 
 state 28
@@ -808,8 +812,8 @@ state 30
     NE              reduce using rule 74 (factor -> number .)
     AND             reduce using rule 74 (factor -> number .)
     OR              reduce using rule 74 (factor -> number .)
-    )               reduce using rule 74 (factor -> number .)
     ;               reduce using rule 74 (factor -> number .)
+    )               reduce using rule 74 (factor -> number .)
     ,               reduce using rule 74 (factor -> number .)
 
 
@@ -822,16 +826,28 @@ state 31
 
 state 32
 
-    (95) call -> stack_call . ( args )
+    (95) call -> stack_call .
 
-    (               shift and go to state 77
+    *               reduce using rule 95 (call -> stack_call .)
+    /               reduce using rule 95 (call -> stack_call .)
+    +               reduce using rule 95 (call -> stack_call .)
+    -               reduce using rule 95 (call -> stack_call .)
+    <               reduce using rule 95 (call -> stack_call .)
+    >               reduce using rule 95 (call -> stack_call .)
+    EQ              reduce using rule 95 (call -> stack_call .)
+    NE              reduce using rule 95 (call -> stack_call .)
+    AND             reduce using rule 95 (call -> stack_call .)
+    OR              reduce using rule 95 (call -> stack_call .)
+    ,               reduce using rule 95 (call -> stack_call .)
+    )               reduce using rule 95 (call -> stack_call .)
+    ;               reduce using rule 95 (call -> stack_call .)
 
 
 state 33
 
     (51) print_stmt -> PRINT . ( exp ) ;
 
-    (               shift and go to state 78
+    (               shift and go to state 77
 
 
 state 34
@@ -858,17 +874,17 @@ state 34
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
+    (95) call -> . stack_call
+    (100) stack_call -> . ID . stack_method
 
-    ;               shift and go to state 79
+    ;               shift and go to state 78
     STRING          shift and go to state 48
     READ            shift and go to state 29
     THIS            shift and go to state 57
@@ -892,7 +908,7 @@ state 34
     read                           shift and go to state 40
     term                           shift and go to state 51
     comparison                     shift and go to state 55
-    exp                            shift and go to state 80
+    exp                            shift and go to state 79
     assign                         shift and go to state 63
 
 state 35
@@ -901,8 +917,8 @@ state 35
 
     AND             reduce using rule 86 (bool -> TRUE .)
     OR              reduce using rule 86 (bool -> TRUE .)
-    ,               reduce using rule 86 (bool -> TRUE .)
     )               reduce using rule 86 (bool -> TRUE .)
+    ,               reduce using rule 86 (bool -> TRUE .)
     ;               reduce using rule 86 (bool -> TRUE .)
 
 
@@ -913,14 +929,14 @@ state 36
     (82) log_a_alt -> . empty
     (104) empty -> .
 
-    AND             shift and go to state 81
+    AND             shift and go to state 80
     OR              reduce using rule 104 (empty -> .)
     ;               reduce using rule 104 (empty -> .)
     )               reduce using rule 104 (empty -> .)
     ,               reduce using rule 104 (empty -> .)
 
-    empty                          shift and go to state 82
-    log_a_alt                      shift and go to state 83
+    empty                          shift and go to state 81
+    log_a_alt                      shift and go to state 82
 
 state 37
 
@@ -929,13 +945,13 @@ state 37
     (79) logic_exp_alt -> . empty
     (104) empty -> .
 
-    OR              shift and go to state 86
+    OR              shift and go to state 85
     ;               reduce using rule 104 (empty -> .)
     )               reduce using rule 104 (empty -> .)
     ,               reduce using rule 104 (empty -> .)
 
-    logic_exp_alt                  shift and go to state 84
-    empty                          shift and go to state 85
+    logic_exp_alt                  shift and go to state 83
+    empty                          shift and go to state 84
 
 state 38
 
@@ -948,7 +964,7 @@ state 38
     (83) log_b -> . ( logic_exp )
     (84) log_b -> . bool
     (85) log_b -> . comparison
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
@@ -959,14 +975,14 @@ state 38
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
+    (95) call -> . stack_call
     (44) prop -> . THIS . ID
     (45) prop -> . ID . ID
     (46) prop -> . ID
-    (100) stack_call -> . prop stack_method
+    (100) stack_call -> . ID . stack_method
 
     (               shift and go to state 38
-    ID              shift and go to state 90
+    ID              shift and go to state 89
     TRUE            shift and go to state 35
     FALSE           shift and go to state 56
     FLOAT           shift and go to state 27
@@ -978,38 +994,30 @@ state 38
     term                           shift and go to state 51
     log_a                          shift and go to state 37
     number                         shift and go to state 30
-    prop                           shift and go to state 87
+    prop                           shift and go to state 86
+    stack_call                     shift and go to state 32
     bool                           shift and go to state 41
-    math_exp                       shift and go to state 88
+    math_exp                       shift and go to state 87
     factor                         shift and go to state 43
     call                           shift and go to state 44
-    stack_call                     shift and go to state 32
-    logic_exp                      shift and go to state 89
+    logic_exp                      shift and go to state 88
 
 state 39
 
     (42) assign -> prop . = exp
     (94) call -> prop . ( args )
-    (100) stack_call -> prop . stack_method
-    (101) stack_method -> . POP
-    (102) stack_method -> . PUSH
-    (103) stack_method -> . PEEK
 
-    =               shift and go to state 96
-    (               shift and go to state 92
-    POP             shift and go to state 94
-    PUSH            shift and go to state 95
-    PEEK            shift and go to state 91
+    =               shift and go to state 91
+    (               shift and go to state 90
 
-    stack_method                   shift and go to state 93
 
 state 40
 
     (58) exp -> read .
 
-    ,               reduce using rule 58 (exp -> read .)
-    )               reduce using rule 58 (exp -> read .)
     ;               reduce using rule 58 (exp -> read .)
+    )               reduce using rule 58 (exp -> read .)
+    ,               reduce using rule 58 (exp -> read .)
 
 
 state 41
@@ -1039,8 +1047,8 @@ state 43
     (72) term_alt -> . empty
     (104) empty -> .
 
-    *               shift and go to state 98
-    /               shift and go to state 99
+    *               shift and go to state 93
+    /               shift and go to state 94
     +               reduce using rule 104 (empty -> .)
     -               reduce using rule 104 (empty -> .)
     <               reduce using rule 104 (empty -> .)
@@ -1053,8 +1061,8 @@ state 43
     )               reduce using rule 104 (empty -> .)
     ,               reduce using rule 104 (empty -> .)
 
-    empty                          shift and go to state 97
-    term_alt                       shift and go to state 100
+    empty                          shift and go to state 92
+    term_alt                       shift and go to state 95
 
 state 44
 
@@ -1070,8 +1078,8 @@ state 44
     NE              reduce using rule 75 (factor -> call .)
     AND             reduce using rule 75 (factor -> call .)
     OR              reduce using rule 75 (factor -> call .)
-    )               reduce using rule 75 (factor -> call .)
     ;               reduce using rule 75 (factor -> call .)
+    )               reduce using rule 75 (factor -> call .)
     ,               reduce using rule 75 (factor -> call .)
 
 
@@ -1087,9 +1095,9 @@ state 46
 
     (59) exp -> logic_exp .
 
-    ,               reduce using rule 59 (exp -> logic_exp .)
-    )               reduce using rule 59 (exp -> logic_exp .)
     ;               reduce using rule 59 (exp -> logic_exp .)
+    )               reduce using rule 59 (exp -> logic_exp .)
+    ,               reduce using rule 59 (exp -> logic_exp .)
 
 
 state 47
@@ -1104,9 +1112,9 @@ state 48
 
     (61) exp -> STRING .
 
-    ,               reduce using rule 61 (exp -> STRING .)
-    )               reduce using rule 61 (exp -> STRING .)
     ;               reduce using rule 61 (exp -> STRING .)
+    )               reduce using rule 61 (exp -> STRING .)
+    ,               reduce using rule 61 (exp -> STRING .)
 
 
 state 49
@@ -1118,7 +1126,7 @@ state 49
     FLOAT           shift and go to state 27
     INT             shift and go to state 60
 
-    number                         shift and go to state 101
+    number                         shift and go to state 96
 
 state 50
 
@@ -1136,8 +1144,8 @@ state 51
     (68) math_exp_alt -> . empty
     (104) empty -> .
 
-    +               shift and go to state 105
-    -               shift and go to state 102
+    +               shift and go to state 100
+    -               shift and go to state 97
     <               reduce using rule 104 (empty -> .)
     >               reduce using rule 104 (empty -> .)
     EQ              reduce using rule 104 (empty -> .)
@@ -1148,8 +1156,8 @@ state 51
     )               reduce using rule 104 (empty -> .)
     ,               reduce using rule 104 (empty -> .)
 
-    math_exp_alt                   shift and go to state 103
-    empty                          shift and go to state 104
+    math_exp_alt                   shift and go to state 98
+    empty                          shift and go to state 99
 
 state 52
 
@@ -1163,48 +1171,50 @@ state 52
     AND             reduce using rule 89 (comparison -> math_exp .)
     OR              reduce using rule 89 (comparison -> math_exp .)
     ;               reduce using rule 89 (comparison -> math_exp .)
-    ,               reduce using rule 89 (comparison -> math_exp .)
     )               reduce using rule 89 (comparison -> math_exp .)
-    <               shift and go to state 109
-    >               shift and go to state 110
-    EQ              shift and go to state 108
-    NE              shift and go to state 107
+    ,               reduce using rule 89 (comparison -> math_exp .)
+    <               shift and go to state 104
+    >               shift and go to state 105
+    EQ              shift and go to state 103
+    NE              shift and go to state 102
 
-    comparison_op                  shift and go to state 106
+    comparison_op                  shift and go to state 101
 
 state 53
 
     (45) prop -> ID . . ID
     (46) prop -> ID .
-    (73) factor -> ID .
+    (73) factor -> ID . check_number
+    (100) stack_call -> ID . . stack_method
+    (111) check_number -> . empty
+    (104) empty -> .
 
-    .               shift and go to state 111
+    .               shift and go to state 108
     =               reduce using rule 46 (prop -> ID .)
     (               reduce using rule 46 (prop -> ID .)
-    POP             reduce using rule 46 (prop -> ID .)
-    PUSH            reduce using rule 46 (prop -> ID .)
-    PEEK            reduce using rule 46 (prop -> ID .)
-    *               reduce using rule 73 (factor -> ID .)
-    /               reduce using rule 73 (factor -> ID .)
-    +               reduce using rule 73 (factor -> ID .)
-    -               reduce using rule 73 (factor -> ID .)
-    <               reduce using rule 73 (factor -> ID .)
-    >               reduce using rule 73 (factor -> ID .)
-    EQ              reduce using rule 73 (factor -> ID .)
-    NE              reduce using rule 73 (factor -> ID .)
-    AND             reduce using rule 73 (factor -> ID .)
-    OR              reduce using rule 73 (factor -> ID .)
-    )               reduce using rule 73 (factor -> ID .)
-    ;               reduce using rule 73 (factor -> ID .)
-    ,               reduce using rule 73 (factor -> ID .)
+    *               reduce using rule 104 (empty -> .)
+    /               reduce using rule 104 (empty -> .)
+    +               reduce using rule 104 (empty -> .)
+    -               reduce using rule 104 (empty -> .)
+    <               reduce using rule 104 (empty -> .)
+    >               reduce using rule 104 (empty -> .)
+    EQ              reduce using rule 104 (empty -> .)
+    NE              reduce using rule 104 (empty -> .)
+    AND             reduce using rule 104 (empty -> .)
+    OR              reduce using rule 104 (empty -> .)
+    ;               reduce using rule 104 (empty -> .)
+    )               reduce using rule 104 (empty -> .)
+    ,               reduce using rule 104 (empty -> .)
 
+    check_number                   shift and go to state 106
+    empty                          shift and go to state 107
 
 state 54
 
     (47) if_block -> IF . ( exp ) block
     (48) if_block -> IF . ( exp ) block ELSE block
 
-    (               shift and go to state 112
+    (               shift and go to state 109
 
 
 state 55
@@ -1224,8 +1234,8 @@ state 56
 
     AND             reduce using rule 87 (bool -> FALSE .)
     OR              reduce using rule 87 (bool -> FALSE .)
-    ,               reduce using rule 87 (bool -> FALSE .)
     )               reduce using rule 87 (bool -> FALSE .)
+    ,               reduce using rule 87 (bool -> FALSE .)
     ;               reduce using rule 87 (bool -> FALSE .)
 
 
@@ -1233,7 +1243,7 @@ state 57
 
     (44) prop -> THIS . . ID
 
-    .               shift and go to state 113
+    .               shift and go to state 110
 
 
 state 58
@@ -1260,18 +1270,18 @@ state 60
     /               reduce using rule 56 (number -> INT .)
     +               reduce using rule 56 (number -> INT .)
     -               reduce using rule 56 (number -> INT .)
-    AND             reduce using rule 56 (number -> INT .)
-    OR              reduce using rule 56 (number -> INT .)
-    ;               reduce using rule 56 (number -> INT .)
-    )               reduce using rule 56 (number -> INT .)
-    ,               reduce using rule 56 (number -> INT .)
     <               reduce using rule 56 (number -> INT .)
     >               reduce using rule 56 (number -> INT .)
     EQ              reduce using rule 56 (number -> INT .)
     NE              reduce using rule 56 (number -> INT .)
+    AND             reduce using rule 56 (number -> INT .)
+    OR              reduce using rule 56 (number -> INT .)
+    ,               reduce using rule 56 (number -> INT .)
+    )               reduce using rule 56 (number -> INT .)
+    ;               reduce using rule 56 (number -> INT .)
+    {               reduce using rule 56 (number -> INT .)
     SKIP            reduce using rule 56 (number -> INT .)
     FOR_TO          reduce using rule 56 (number -> INT .)
-    {               reduce using rule 56 (number -> INT .)
 
 
 state 61
@@ -1286,22 +1296,25 @@ state 62
 
     (57) expr -> exp . ;
 
-    ;               shift and go to state 114
+    ;               shift and go to state 111
 
 
 state 63
 
     (60) exp -> assign .
 
-    ,               reduce using rule 60 (exp -> assign .)
-    )               reduce using rule 60 (exp -> assign .)
     ;               reduce using rule 60 (exp -> assign .)
+    )               reduce using rule 60 (exp -> assign .)
+    ,               reduce using rule 60 (exp -> assign .)
 
 
 state 64
 
     (2) vars -> var vars .
 
+    ~               reduce using rule 2 (vars -> var vars .)
+    #               reduce using rule 2 (vars -> var vars .)
+    }               reduce using rule 2 (vars -> var vars .)
     IF              reduce using rule 2 (vars -> var vars .)
     WHILE           reduce using rule 2 (vars -> var vars .)
     FOR             reduce using rule 2 (vars -> var vars .)
@@ -1317,23 +1330,20 @@ state 64
     FLOAT           reduce using rule 2 (vars -> var vars .)
     INT             reduce using rule 2 (vars -> var vars .)
     $end            reduce using rule 2 (vars -> var vars .)
-    ~               reduce using rule 2 (vars -> var vars .)
-    #               reduce using rule 2 (vars -> var vars .)
-    }               reduce using rule 2 (vars -> var vars .)
 
 
 state 65
 
     (27) function -> # ID neg_lookup . : return_type params scope_function func_block
 
-    :               shift and go to state 115
+    :               shift and go to state 112
 
 
 state 66
 
-    (110) neg_lookup -> empty .
+    (112) neg_lookup -> empty .
 
-    :               reduce using rule 110 (neg_lookup -> empty .)
+    :               reduce using rule 112 (neg_lookup -> empty .)
 
 
 state 67
@@ -1373,7 +1383,7 @@ state 68
     #               reduce using rule 104 (empty -> .)
     }               reduce using rule 104 (empty -> .)
 
-    vars                           shift and go to state 116
+    vars                           shift and go to state 113
     var                            shift and go to state 18
     empty                          shift and go to state 19
 
@@ -1393,7 +1403,7 @@ state 70
 
     (20) inheritance -> < ID check_class . >
 
-    >               shift and go to state 117
+    >               shift and go to state 114
 
 
 state 71
@@ -1406,20 +1416,20 @@ state 71
     (13) type -> . STACK
     (14) type -> . ID check_class
 
-    INT_TYPE        shift and go to state 122
-    FLOAT_TYPE      shift and go to state 118
-    STRING_TYPE     shift and go to state 120
-    BOOLEAN_TYPE    shift and go to state 119
-    STACK           shift and go to state 121
-    ID              shift and go to state 124
+    INT_TYPE        shift and go to state 119
+    FLOAT_TYPE      shift and go to state 115
+    STRING_TYPE     shift and go to state 117
+    BOOLEAN_TYPE    shift and go to state 116
+    STACK           shift and go to state 118
+    ID              shift and go to state 121
 
-    type                           shift and go to state 123
+    type                           shift and go to state 120
 
 state 72
 
     (4) var -> $ attr init . ;
 
-    ;               shift and go to state 125
+    ;               shift and go to state 122
 
 
 state 73
@@ -1446,17 +1456,17 @@ state 73
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
+    (95) call -> . stack_call
+    (100) stack_call -> . ID . stack_method
 
-    NEW             shift and go to state 126
+    NEW             shift and go to state 123
     STRING          shift and go to state 48
     READ            shift and go to state 29
     THIS            shift and go to state 57
@@ -1480,7 +1490,7 @@ state 73
     read                           shift and go to state 40
     term                           shift and go to state 51
     comparison                     shift and go to state 55
-    exp                            shift and go to state 127
+    exp                            shift and go to state 124
     assign                         shift and go to state 63
 
 state 74
@@ -1493,13 +1503,13 @@ state 74
 state 75
 
     (62) read -> READ ( . string )
-    (63) string -> . ID
+    (63) string -> . ID check_string
     (64) string -> . STRING
 
-    ID              shift and go to state 129
-    STRING          shift and go to state 128
+    ID              shift and go to state 126
+    STRING          shift and go to state 127
 
-    string                         shift and go to state 130
+    string                         shift and go to state 125
 
 state 76
 
@@ -1524,15 +1534,15 @@ state 76
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
+    (95) call -> . stack_call
+    (100) stack_call -> . ID . stack_method
 
     STRING          shift and go to state 48
     READ            shift and go to state 29
@@ -1557,75 +1567,10 @@ state 76
     read                           shift and go to state 40
     term                           shift and go to state 51
     comparison                     shift and go to state 55
-    exp                            shift and go to state 131
+    exp                            shift and go to state 128
     assign                         shift and go to state 63
 
 state 77
-
-    (95) call -> stack_call ( . args )
-    (96) args -> . exp args_aux
-    (97) args -> . empty
-    (58) exp -> . read
-    (59) exp -> . logic_exp
-    (60) exp -> . assign
-    (61) exp -> . STRING
-    (104) empty -> .
-    (62) read -> . READ ( string )
-    (77) logic_exp -> . log_a logic_exp_alt
-    (42) assign -> . prop = exp
-    (80) log_a -> . log_b log_a_alt
-    (44) prop -> . THIS . ID
-    (45) prop -> . ID . ID
-    (46) prop -> . ID
-    (83) log_b -> . ( logic_exp )
-    (84) log_b -> . bool
-    (85) log_b -> . comparison
-    (86) bool -> . TRUE
-    (87) bool -> . FALSE
-    (88) comparison -> . math_exp comparison_op math_exp
-    (89) comparison -> . math_exp
-    (65) math_exp -> . term math_exp_alt
-    (69) term -> . factor term_alt
-    (73) factor -> . ID
-    (74) factor -> . number
-    (75) factor -> . call
-    (76) factor -> . ( math_exp )
-    (55) number -> . FLOAT
-    (56) number -> . INT
-    (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
-
-    STRING          shift and go to state 48
-    )               reduce using rule 104 (empty -> .)
-    READ            shift and go to state 29
-    THIS            shift and go to state 57
-    ID              shift and go to state 53
-    (               shift and go to state 38
-    TRUE            shift and go to state 35
-    FALSE           shift and go to state 56
-    FLOAT           shift and go to state 27
-    INT             shift and go to state 60
-
-    number                         shift and go to state 30
-    stack_call                     shift and go to state 32
-    log_b                          shift and go to state 36
-    log_a                          shift and go to state 37
-    prop                           shift and go to state 39
-    bool                           shift and go to state 41
-    math_exp                       shift and go to state 52
-    factor                         shift and go to state 43
-    call                           shift and go to state 44
-    empty                          shift and go to state 132
-    logic_exp                      shift and go to state 46
-    read                           shift and go to state 40
-    args                           shift and go to state 133
-    term                           shift and go to state 51
-    comparison                     shift and go to state 55
-    exp                            shift and go to state 134
-    assign                         shift and go to state 63
-
-state 78
 
     (51) print_stmt -> PRINT ( . exp ) ;
     (58) exp -> . read
@@ -1648,15 +1593,15 @@ state 78
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
+    (95) call -> . stack_call
+    (100) stack_call -> . ID . stack_method
 
     STRING          shift and go to state 48
     READ            shift and go to state 29
@@ -1681,25 +1626,25 @@ state 78
     read                           shift and go to state 40
     term                           shift and go to state 51
     comparison                     shift and go to state 55
-    exp                            shift and go to state 135
+    exp                            shift and go to state 129
     assign                         shift and go to state 63
 
-state 79
+state 78
 
     (53) return -> RETURN ; .
 
-    }               reduce using rule 53 (return -> RETURN ; .)
     $end            reduce using rule 53 (return -> RETURN ; .)
+    }               reduce using rule 53 (return -> RETURN ; .)
 
 
-state 80
+state 79
 
     (52) return -> RETURN exp . ;
 
-    ;               shift and go to state 136
+    ;               shift and go to state 130
 
 
-state 81
+state 80
 
     (81) log_a_alt -> AND . log_b log_a_alt
     (83) log_b -> . ( logic_exp )
@@ -1711,39 +1656,39 @@ state 81
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
+    (95) call -> . stack_call
     (44) prop -> . THIS . ID
     (45) prop -> . ID . ID
     (46) prop -> . ID
-    (100) stack_call -> . prop stack_method
+    (100) stack_call -> . ID . stack_method
 
     (               shift and go to state 38
     TRUE            shift and go to state 35
     FALSE           shift and go to state 56
-    ID              shift and go to state 90
+    ID              shift and go to state 89
     FLOAT           shift and go to state 27
     INT             shift and go to state 60
     THIS            shift and go to state 57
 
-    log_b                          shift and go to state 137
+    log_b                          shift and go to state 131
     comparison                     shift and go to state 55
     term                           shift and go to state 51
     number                         shift and go to state 30
+    stack_call                     shift and go to state 32
     bool                           shift and go to state 41
     math_exp                       shift and go to state 52
     factor                         shift and go to state 43
     call                           shift and go to state 44
-    prop                           shift and go to state 87
-    stack_call                     shift and go to state 32
+    prop                           shift and go to state 86
 
-state 82
+state 81
 
     (82) log_a_alt -> empty .
 
@@ -1753,7 +1698,7 @@ state 82
     ,               reduce using rule 82 (log_a_alt -> empty .)
 
 
-state 83
+state 82
 
     (80) log_a -> log_b log_a_alt .
 
@@ -1763,16 +1708,16 @@ state 83
     ,               reduce using rule 80 (log_a -> log_b log_a_alt .)
 
 
-state 84
+state 83
 
     (77) logic_exp -> log_a logic_exp_alt .
 
+    ;               reduce using rule 77 (logic_exp -> log_a logic_exp_alt .)
     ,               reduce using rule 77 (logic_exp -> log_a logic_exp_alt .)
     )               reduce using rule 77 (logic_exp -> log_a logic_exp_alt .)
-    ;               reduce using rule 77 (logic_exp -> log_a logic_exp_alt .)
 
 
-state 85
+state 84
 
     (79) logic_exp_alt -> empty .
 
@@ -1781,7 +1726,7 @@ state 85
     ,               reduce using rule 79 (logic_exp_alt -> empty .)
 
 
-state 86
+state 85
 
     (78) logic_exp_alt -> OR . log_a logic_exp_alt
     (80) log_a -> . log_b log_a_alt
@@ -1794,55 +1739,47 @@ state 86
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
+    (95) call -> . stack_call
     (44) prop -> . THIS . ID
     (45) prop -> . ID . ID
     (46) prop -> . ID
-    (100) stack_call -> . prop stack_method
+    (100) stack_call -> . ID . stack_method
 
     (               shift and go to state 38
     TRUE            shift and go to state 35
     FALSE           shift and go to state 56
-    ID              shift and go to state 90
+    ID              shift and go to state 89
     FLOAT           shift and go to state 27
     INT             shift and go to state 60
     THIS            shift and go to state 57
 
     log_b                          shift and go to state 36
     comparison                     shift and go to state 55
-    log_a                          shift and go to state 138
+    log_a                          shift and go to state 132
     term                           shift and go to state 51
     number                         shift and go to state 30
+    stack_call                     shift and go to state 32
     bool                           shift and go to state 41
     math_exp                       shift and go to state 52
     factor                         shift and go to state 43
     call                           shift and go to state 44
-    prop                           shift and go to state 87
-    stack_call                     shift and go to state 32
+    prop                           shift and go to state 86
 
-state 87
+state 86
 
     (94) call -> prop . ( args )
-    (100) stack_call -> prop . stack_method
-    (101) stack_method -> . POP
-    (102) stack_method -> . PUSH
-    (103) stack_method -> . PEEK
 
-    (               shift and go to state 92
-    POP             shift and go to state 94
-    PUSH            shift and go to state 95
-    PEEK            shift and go to state 91
+    (               shift and go to state 90
 
-    stack_method                   shift and go to state 93
 
-state 88
+state 87
 
     (76) factor -> ( math_exp . )
     (88) comparison -> math_exp . comparison_op math_exp
@@ -1853,59 +1790,54 @@ state 88
     (93) comparison_op -> . NE
 
   ! shift/reduce conflict for ) resolved as shift
-    )               shift and go to state 139
+    )               shift and go to state 133
     AND             reduce using rule 89 (comparison -> math_exp .)
     OR              reduce using rule 89 (comparison -> math_exp .)
-    <               shift and go to state 109
-    >               shift and go to state 110
-    EQ              shift and go to state 108
-    NE              shift and go to state 107
+    <               shift and go to state 104
+    >               shift and go to state 105
+    EQ              shift and go to state 103
+    NE              shift and go to state 102
 
   ! )               [ reduce using rule 89 (comparison -> math_exp .) ]
 
-    comparison_op                  shift and go to state 106
+    comparison_op                  shift and go to state 101
 
-state 89
+state 88
 
     (83) log_b -> ( logic_exp . )
 
-    )               shift and go to state 140
+    )               shift and go to state 134
 
 
-state 90
+state 89
 
-    (73) factor -> ID .
+    (73) factor -> ID . check_number
     (45) prop -> ID . . ID
     (46) prop -> ID .
+    (100) stack_call -> ID . . stack_method
+    (111) check_number -> . empty
+    (104) empty -> .
 
-    *               reduce using rule 73 (factor -> ID .)
-    /               reduce using rule 73 (factor -> ID .)
-    +               reduce using rule 73 (factor -> ID .)
-    -               reduce using rule 73 (factor -> ID .)
-    <               reduce using rule 73 (factor -> ID .)
-    >               reduce using rule 73 (factor -> ID .)
-    EQ              reduce using rule 73 (factor -> ID .)
-    NE              reduce using rule 73 (factor -> ID .)
-    AND             reduce using rule 73 (factor -> ID .)
-    OR              reduce using rule 73 (factor -> ID .)
-    ;               reduce using rule 73 (factor -> ID .)
-    )               reduce using rule 73 (factor -> ID .)
-    ,               reduce using rule 73 (factor -> ID .)
-    .               shift and go to state 111
+    .               shift and go to state 108
     (               reduce using rule 46 (prop -> ID .)
-    POP             reduce using rule 46 (prop -> ID .)
-    PUSH            reduce using rule 46 (prop -> ID .)
-    PEEK            reduce using rule 46 (prop -> ID .)
+    *               reduce using rule 104 (empty -> .)
+    /               reduce using rule 104 (empty -> .)
+    +               reduce using rule 104 (empty -> .)
+    -               reduce using rule 104 (empty -> .)
+    )               reduce using rule 104 (empty -> .)
+    <               reduce using rule 104 (empty -> .)
+    >               reduce using rule 104 (empty -> .)
+    EQ              reduce using rule 104 (empty -> .)
+    NE              reduce using rule 104 (empty -> .)
+    AND             reduce using rule 104 (empty -> .)
+    OR              reduce using rule 104 (empty -> .)
+    ;               reduce using rule 104 (empty -> .)
+    ,               reduce using rule 104 (empty -> .)
 
+    check_number                   shift and go to state 106
+    empty                          shift and go to state 107
 
-state 91
-
-    (103) stack_method -> PEEK .
-
-    (               reduce using rule 103 (stack_method -> PEEK .)
-
-
-state 92
+state 90
 
     (94) call -> prop ( . args )
     (96) args -> . exp args_aux
@@ -1931,15 +1863,15 @@ state 92
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
+    (95) call -> . stack_call
+    (100) stack_call -> . ID . stack_method
 
     STRING          shift and go to state 48
     )               reduce using rule 104 (empty -> .)
@@ -1961,37 +1893,16 @@ state 92
     math_exp                       shift and go to state 52
     factor                         shift and go to state 43
     call                           shift and go to state 44
-    empty                          shift and go to state 132
+    empty                          shift and go to state 135
     logic_exp                      shift and go to state 46
     read                           shift and go to state 40
-    args                           shift and go to state 141
+    args                           shift and go to state 136
     term                           shift and go to state 51
     comparison                     shift and go to state 55
-    exp                            shift and go to state 134
+    exp                            shift and go to state 137
     assign                         shift and go to state 63
 
-state 93
-
-    (100) stack_call -> prop stack_method .
-
-    (               reduce using rule 100 (stack_call -> prop stack_method .)
-
-
-state 94
-
-    (101) stack_method -> POP .
-
-    (               reduce using rule 101 (stack_method -> POP .)
-
-
-state 95
-
-    (102) stack_method -> PUSH .
-
-    (               reduce using rule 102 (stack_method -> PUSH .)
-
-
-state 96
+state 91
 
     (42) assign -> prop = . exp
     (58) exp -> . read
@@ -2014,15 +1925,15 @@ state 96
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
+    (95) call -> . stack_call
+    (100) stack_call -> . ID . stack_method
 
     STRING          shift and go to state 48
     READ            shift and go to state 29
@@ -2047,10 +1958,10 @@ state 96
     read                           shift and go to state 40
     term                           shift and go to state 51
     comparison                     shift and go to state 55
-    exp                            shift and go to state 142
+    exp                            shift and go to state 138
     assign                         shift and go to state 63
 
-state 97
+state 92
 
     (72) term_alt -> empty .
 
@@ -2067,63 +1978,63 @@ state 97
     ,               reduce using rule 72 (term_alt -> empty .)
 
 
-state 98
+state 93
 
     (70) term_alt -> * . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
+    (95) call -> . stack_call
     (44) prop -> . THIS . ID
     (45) prop -> . ID . ID
     (46) prop -> . ID
-    (100) stack_call -> . prop stack_method
+    (100) stack_call -> . ID . stack_method
 
-    ID              shift and go to state 90
-    (               shift and go to state 143
+    ID              shift and go to state 89
+    (               shift and go to state 139
     FLOAT           shift and go to state 27
     INT             shift and go to state 60
     THIS            shift and go to state 57
 
     number                         shift and go to state 30
-    prop                           shift and go to state 87
+    prop                           shift and go to state 86
     call                           shift and go to state 44
-    factor                         shift and go to state 144
+    factor                         shift and go to state 140
     stack_call                     shift and go to state 32
 
-state 99
+state 94
 
     (71) term_alt -> / . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
+    (95) call -> . stack_call
     (44) prop -> . THIS . ID
     (45) prop -> . ID . ID
     (46) prop -> . ID
-    (100) stack_call -> . prop stack_method
+    (100) stack_call -> . ID . stack_method
 
-    ID              shift and go to state 90
-    (               shift and go to state 143
+    ID              shift and go to state 89
+    (               shift and go to state 139
     FLOAT           shift and go to state 27
     INT             shift and go to state 60
     THIS            shift and go to state 57
 
     number                         shift and go to state 30
-    prop                           shift and go to state 87
+    prop                           shift and go to state 86
     call                           shift and go to state 44
-    factor                         shift and go to state 145
+    factor                         shift and go to state 141
     stack_call                     shift and go to state 32
 
-state 100
+state 95
 
     (69) term -> factor term_alt .
 
@@ -2140,48 +2051,47 @@ state 100
     ,               reduce using rule 69 (term -> factor term_alt .)
 
 
-state 101
+state 96
 
     (50) for_block -> FOR number . FOR_TO number SKIP number block
 
-    FOR_TO          shift and go to state 146
+    FOR_TO          shift and go to state 142
 
 
-state 102
+state 97
 
     (67) math_exp_alt -> - . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
+    (95) call -> . stack_call
     (44) prop -> . THIS . ID
     (45) prop -> . ID . ID
     (46) prop -> . ID
-    (100) stack_call -> . prop stack_method
+    (100) stack_call -> . ID . stack_method
 
-    ID              shift and go to state 90
-    (               shift and go to state 143
+    ID              shift and go to state 89
+    (               shift and go to state 139
     FLOAT           shift and go to state 27
     INT             shift and go to state 60
     THIS            shift and go to state 57
 
-    term                           shift and go to state 147
+    term                           shift and go to state 143
     number                         shift and go to state 30
-    prop                           shift and go to state 87
+    prop                           shift and go to state 86
     call                           shift and go to state 44
     factor                         shift and go to state 43
     stack_call                     shift and go to state 32
 
-state 103
+state 98
 
     (65) math_exp -> term math_exp_alt .
 
-    )               reduce using rule 65 (math_exp -> term math_exp_alt .)
     <               reduce using rule 65 (math_exp -> term math_exp_alt .)
     >               reduce using rule 65 (math_exp -> term math_exp_alt .)
     EQ              reduce using rule 65 (math_exp -> term math_exp_alt .)
@@ -2189,10 +2099,11 @@ state 103
     AND             reduce using rule 65 (math_exp -> term math_exp_alt .)
     OR              reduce using rule 65 (math_exp -> term math_exp_alt .)
     ;               reduce using rule 65 (math_exp -> term math_exp_alt .)
+    )               reduce using rule 65 (math_exp -> term math_exp_alt .)
     ,               reduce using rule 65 (math_exp -> term math_exp_alt .)
 
 
-state 104
+state 99
 
     (68) math_exp_alt -> empty .
 
@@ -2207,56 +2118,56 @@ state 104
     ,               reduce using rule 68 (math_exp_alt -> empty .)
 
 
-state 105
+state 100
 
     (66) math_exp_alt -> + . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
+    (95) call -> . stack_call
     (44) prop -> . THIS . ID
     (45) prop -> . ID . ID
     (46) prop -> . ID
-    (100) stack_call -> . prop stack_method
+    (100) stack_call -> . ID . stack_method
 
-    ID              shift and go to state 90
-    (               shift and go to state 143
+    ID              shift and go to state 89
+    (               shift and go to state 139
     FLOAT           shift and go to state 27
     INT             shift and go to state 60
     THIS            shift and go to state 57
 
-    term                           shift and go to state 148
+    term                           shift and go to state 144
     number                         shift and go to state 30
-    prop                           shift and go to state 87
+    prop                           shift and go to state 86
     call                           shift and go to state 44
     factor                         shift and go to state 43
     stack_call                     shift and go to state 32
 
-state 106
+state 101
 
     (88) comparison -> math_exp comparison_op . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
+    (95) call -> . stack_call
     (44) prop -> . THIS . ID
     (45) prop -> . ID . ID
     (46) prop -> . ID
-    (100) stack_call -> . prop stack_method
+    (100) stack_call -> . ID . stack_method
 
-    ID              shift and go to state 90
-    (               shift and go to state 143
+    ID              shift and go to state 89
+    (               shift and go to state 139
     FLOAT           shift and go to state 27
     INT             shift and go to state 60
     THIS            shift and go to state 57
@@ -2264,12 +2175,12 @@ state 106
     term                           shift and go to state 51
     number                         shift and go to state 30
     call                           shift and go to state 44
-    math_exp                       shift and go to state 149
+    math_exp                       shift and go to state 145
     factor                         shift and go to state 43
     stack_call                     shift and go to state 32
-    prop                           shift and go to state 87
+    prop                           shift and go to state 86
 
-state 107
+state 102
 
     (93) comparison_op -> NE .
 
@@ -2280,7 +2191,7 @@ state 107
     THIS            reduce using rule 93 (comparison_op -> NE .)
 
 
-state 108
+state 103
 
     (92) comparison_op -> EQ .
 
@@ -2291,7 +2202,7 @@ state 108
     THIS            reduce using rule 92 (comparison_op -> EQ .)
 
 
-state 109
+state 104
 
     (90) comparison_op -> < .
 
@@ -2302,7 +2213,7 @@ state 109
     THIS            reduce using rule 90 (comparison_op -> < .)
 
 
-state 110
+state 105
 
     (91) comparison_op -> > .
 
@@ -2313,14 +2224,60 @@ state 110
     THIS            reduce using rule 91 (comparison_op -> > .)
 
 
-state 111
+state 106
+
+    (73) factor -> ID check_number .
+
+    *               reduce using rule 73 (factor -> ID check_number .)
+    /               reduce using rule 73 (factor -> ID check_number .)
+    +               reduce using rule 73 (factor -> ID check_number .)
+    -               reduce using rule 73 (factor -> ID check_number .)
+    <               reduce using rule 73 (factor -> ID check_number .)
+    >               reduce using rule 73 (factor -> ID check_number .)
+    EQ              reduce using rule 73 (factor -> ID check_number .)
+    NE              reduce using rule 73 (factor -> ID check_number .)
+    AND             reduce using rule 73 (factor -> ID check_number .)
+    OR              reduce using rule 73 (factor -> ID check_number .)
+    ;               reduce using rule 73 (factor -> ID check_number .)
+    )               reduce using rule 73 (factor -> ID check_number .)
+    ,               reduce using rule 73 (factor -> ID check_number .)
+
+
+state 107
+
+    (111) check_number -> empty .
+
+    *               reduce using rule 111 (check_number -> empty .)
+    /               reduce using rule 111 (check_number -> empty .)
+    +               reduce using rule 111 (check_number -> empty .)
+    -               reduce using rule 111 (check_number -> empty .)
+    )               reduce using rule 111 (check_number -> empty .)
+    <               reduce using rule 111 (check_number -> empty .)
+    >               reduce using rule 111 (check_number -> empty .)
+    EQ              reduce using rule 111 (check_number -> empty .)
+    NE              reduce using rule 111 (check_number -> empty .)
+    AND             reduce using rule 111 (check_number -> empty .)
+    OR              reduce using rule 111 (check_number -> empty .)
+    ;               reduce using rule 111 (check_number -> empty .)
+    ,               reduce using rule 111 (check_number -> empty .)
+
+
+state 108
 
     (45) prop -> ID . . ID
+    (100) stack_call -> ID . . stack_method
+    (101) stack_method -> . POP ( )
+    (102) stack_method -> . PUSH ( ID check_variable )
+    (103) stack_method -> . PEEK ( )
 
     ID              shift and go to state 150
+    POP             shift and go to state 148
+    PUSH            shift and go to state 149
+    PEEK            shift and go to state 146
 
+    stack_method                   shift and go to state 147
 
-state 112
+state 109
 
     (47) if_block -> IF ( . exp ) block
     (48) if_block -> IF ( . exp ) block ELSE block
@@ -2344,15 +2301,15 @@ state 112
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
+    (95) call -> . stack_call
+    (100) stack_call -> . ID . stack_method
 
     STRING          shift and go to state 48
     READ            shift and go to state 29
@@ -2380,22 +2337,22 @@ state 112
     exp                            shift and go to state 151
     assign                         shift and go to state 63
 
-state 113
+state 110
 
     (44) prop -> THIS . . ID
 
     ID              shift and go to state 152
 
 
-state 114
+state 111
 
     (57) expr -> exp ; .
 
-    $end            reduce using rule 57 (expr -> exp ; .)
     }               reduce using rule 57 (expr -> exp ; .)
+    $end            reduce using rule 57 (expr -> exp ; .)
 
 
-state 115
+state 112
 
     (27) function -> # ID neg_lookup : . return_type params scope_function func_block
     (15) return_type -> . VOID
@@ -2408,17 +2365,17 @@ state 115
     (14) type -> . ID check_class
 
     VOID            shift and go to state 153
-    INT_TYPE        shift and go to state 122
-    FLOAT_TYPE      shift and go to state 118
-    STRING_TYPE     shift and go to state 120
-    BOOLEAN_TYPE    shift and go to state 119
-    STACK           shift and go to state 121
-    ID              shift and go to state 124
+    INT_TYPE        shift and go to state 119
+    FLOAT_TYPE      shift and go to state 115
+    STRING_TYPE     shift and go to state 117
+    BOOLEAN_TYPE    shift and go to state 116
+    STACK           shift and go to state 118
+    ID              shift and go to state 121
 
     return_type                    shift and go to state 154
     type                           shift and go to state 155
 
-state 116
+state 113
 
     (22) class_block -> { vars . constructor functions }
     (23) constructor -> . ~ ID params scope_constructor func_block
@@ -2432,79 +2389,79 @@ state 116
     constructor                    shift and go to state 156
     empty                          shift and go to state 157
 
-state 117
+state 114
 
     (20) inheritance -> < ID check_class > .
 
     {               reduce using rule 20 (inheritance -> < ID check_class > .)
 
 
-state 118
+state 115
 
     (10) type -> FLOAT_TYPE .
 
+    (               reduce using rule 10 (type -> FLOAT_TYPE .)
     =               reduce using rule 10 (type -> FLOAT_TYPE .)
     ;               reduce using rule 10 (type -> FLOAT_TYPE .)
     ,               reduce using rule 10 (type -> FLOAT_TYPE .)
     )               reduce using rule 10 (type -> FLOAT_TYPE .)
-    (               reduce using rule 10 (type -> FLOAT_TYPE .)
 
 
-state 119
+state 116
 
     (12) type -> BOOLEAN_TYPE .
 
+    (               reduce using rule 12 (type -> BOOLEAN_TYPE .)
     =               reduce using rule 12 (type -> BOOLEAN_TYPE .)
     ;               reduce using rule 12 (type -> BOOLEAN_TYPE .)
     ,               reduce using rule 12 (type -> BOOLEAN_TYPE .)
     )               reduce using rule 12 (type -> BOOLEAN_TYPE .)
-    (               reduce using rule 12 (type -> BOOLEAN_TYPE .)
 
 
-state 120
+state 117
 
     (11) type -> STRING_TYPE .
 
+    (               reduce using rule 11 (type -> STRING_TYPE .)
     =               reduce using rule 11 (type -> STRING_TYPE .)
     ;               reduce using rule 11 (type -> STRING_TYPE .)
     ,               reduce using rule 11 (type -> STRING_TYPE .)
     )               reduce using rule 11 (type -> STRING_TYPE .)
-    (               reduce using rule 11 (type -> STRING_TYPE .)
 
 
-state 121
+state 118
 
     (13) type -> STACK .
 
+    (               reduce using rule 13 (type -> STACK .)
     =               reduce using rule 13 (type -> STACK .)
     ;               reduce using rule 13 (type -> STACK .)
     ,               reduce using rule 13 (type -> STACK .)
     )               reduce using rule 13 (type -> STACK .)
-    (               reduce using rule 13 (type -> STACK .)
 
 
-state 122
+state 119
 
     (9) type -> INT_TYPE .
 
+    (               reduce using rule 9 (type -> INT_TYPE .)
     =               reduce using rule 9 (type -> INT_TYPE .)
     ;               reduce using rule 9 (type -> INT_TYPE .)
     ,               reduce using rule 9 (type -> INT_TYPE .)
     )               reduce using rule 9 (type -> INT_TYPE .)
-    (               reduce using rule 9 (type -> INT_TYPE .)
 
 
-state 123
+state 120
 
     (5) attr -> ID : type .
 
-    ,               reduce using rule 5 (attr -> ID : type .)
-    )               reduce using rule 5 (attr -> ID : type .)
     =               reduce using rule 5 (attr -> ID : type .)
     ;               reduce using rule 5 (attr -> ID : type .)
+    ,               reduce using rule 5 (attr -> ID : type .)
+    )               reduce using rule 5 (attr -> ID : type .)
 
 
-state 124
+state 121
 
     (14) type -> ID . check_class
     (109) check_class -> . empty
@@ -2519,7 +2476,7 @@ state 124
     empty                          shift and go to state 69
     check_class                    shift and go to state 159
 
-state 125
+state 122
 
     (4) var -> $ attr init ; .
 
@@ -2544,7 +2501,7 @@ state 125
     $end            reduce using rule 4 (var -> $ attr init ; .)
 
 
-state 126
+state 123
 
     (7) init -> = NEW . constructor_call
     (43) constructor_call -> . ID ( args )
@@ -2553,115 +2510,92 @@ state 126
 
     constructor_call               shift and go to state 160
 
-state 127
+state 124
 
     (6) init -> = exp .
 
     ;               reduce using rule 6 (init -> = exp .)
 
 
-state 128
-
-    (64) string -> STRING .
-
-    )               reduce using rule 64 (string -> STRING .)
-
-
-state 129
-
-    (63) string -> ID .
-
-    )               reduce using rule 63 (string -> ID .)
-
-
-state 130
+state 125
 
     (62) read -> READ ( string . )
 
     )               shift and go to state 162
 
 
-state 131
+state 126
+
+    (63) string -> ID . check_string
+    (110) check_string -> . empty
+    (104) empty -> .
+
+    )               reduce using rule 104 (empty -> .)
+
+    check_string                   shift and go to state 163
+    empty                          shift and go to state 164
+
+state 127
+
+    (64) string -> STRING .
+
+    )               reduce using rule 64 (string -> STRING .)
+
+
+state 128
 
     (49) while_block -> WHILE ( exp . ) block
 
-    )               shift and go to state 163
+    )               shift and go to state 165
 
 
-state 132
-
-    (97) args -> empty .
-
-    )               reduce using rule 97 (args -> empty .)
-
-
-state 133
-
-    (95) call -> stack_call ( args . )
-
-    )               shift and go to state 164
-
-
-state 134
-
-    (96) args -> exp . args_aux
-    (98) args_aux -> . , exp args_aux
-    (99) args_aux -> . empty
-    (104) empty -> .
-
-    ,               shift and go to state 167
-    )               reduce using rule 104 (empty -> .)
-
-    args_aux                       shift and go to state 165
-    empty                          shift and go to state 166
-
-state 135
+state 129
 
     (51) print_stmt -> PRINT ( exp . ) ;
 
-    )               shift and go to state 168
+    )               shift and go to state 166
 
 
-state 136
+state 130
 
     (52) return -> RETURN exp ; .
 
-    }               reduce using rule 52 (return -> RETURN exp ; .)
     $end            reduce using rule 52 (return -> RETURN exp ; .)
+    }               reduce using rule 52 (return -> RETURN exp ; .)
 
 
-state 137
+state 131
 
     (81) log_a_alt -> AND log_b . log_a_alt
     (81) log_a_alt -> . AND log_b log_a_alt
     (82) log_a_alt -> . empty
     (104) empty -> .
 
-    AND             shift and go to state 81
+    AND             shift and go to state 80
     OR              reduce using rule 104 (empty -> .)
     ;               reduce using rule 104 (empty -> .)
     )               reduce using rule 104 (empty -> .)
     ,               reduce using rule 104 (empty -> .)
 
-    empty                          shift and go to state 82
-    log_a_alt                      shift and go to state 169
+    empty                          shift and go to state 81
+    log_a_alt                      shift and go to state 167
 
-state 138
+state 132
 
     (78) logic_exp_alt -> OR log_a . logic_exp_alt
     (78) logic_exp_alt -> . OR log_a logic_exp_alt
     (79) logic_exp_alt -> . empty
     (104) empty -> .
 
-    OR              shift and go to state 86
+    OR              shift and go to state 85
     ;               reduce using rule 104 (empty -> .)
     )               reduce using rule 104 (empty -> .)
     ,               reduce using rule 104 (empty -> .)
 
-    logic_exp_alt                  shift and go to state 170
-    empty                          shift and go to state 85
+    logic_exp_alt                  shift and go to state 168
+    empty                          shift and go to state 84
 
-state 139
+state 133
 
     (76) factor -> ( math_exp ) .
 
@@ -2675,12 +2609,12 @@ state 139
     NE              reduce using rule 76 (factor -> ( math_exp ) .)
     AND             reduce using rule 76 (factor -> ( math_exp ) .)
     OR              reduce using rule 76 (factor -> ( math_exp ) .)
-    )               reduce using rule 76 (factor -> ( math_exp ) .)
     ;               reduce using rule 76 (factor -> ( math_exp ) .)
+    )               reduce using rule 76 (factor -> ( math_exp ) .)
     ,               reduce using rule 76 (factor -> ( math_exp ) .)
 
 
-state 140
+state 134
 
     (83) log_b -> ( logic_exp ) .
 
@@ -2691,55 +2625,75 @@ state 140
     ;               reduce using rule 83 (log_b -> ( logic_exp ) .)
 
 
-state 141
+state 135
+
+    (97) args -> empty .
+
+    )               reduce using rule 97 (args -> empty .)
+
+
+state 136
 
     (94) call -> prop ( args . )
 
-    )               shift and go to state 171
+    )               shift and go to state 169
 
 
-state 142
+state 137
+
+    (96) args -> exp . args_aux
+    (98) args_aux -> . , exp args_aux
+    (99) args_aux -> . empty
+    (104) empty -> .
+
+    ,               shift and go to state 172
+    )               reduce using rule 104 (empty -> .)
+
+    args_aux                       shift and go to state 170
+    empty                          shift and go to state 171
+
+state 138
 
     (42) assign -> prop = exp .
 
     ;               reduce using rule 42 (assign -> prop = exp .)
-    ,               reduce using rule 42 (assign -> prop = exp .)
     )               reduce using rule 42 (assign -> prop = exp .)
+    ,               reduce using rule 42 (assign -> prop = exp .)
 
 
-state 143
+state 139
 
     (76) factor -> ( . math_exp )
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
+    (95) call -> . stack_call
     (44) prop -> . THIS . ID
     (45) prop -> . ID . ID
     (46) prop -> . ID
-    (100) stack_call -> . prop stack_method
+    (100) stack_call -> . ID . stack_method
 
-    ID              shift and go to state 90
-    (               shift and go to state 143
+    ID              shift and go to state 89
+    (               shift and go to state 139
     FLOAT           shift and go to state 27
     INT             shift and go to state 60
     THIS            shift and go to state 57
 
     term                           shift and go to state 51
     number                         shift and go to state 30
-    prop                           shift and go to state 87
+    prop                           shift and go to state 86
     call                           shift and go to state 44
-    math_exp                       shift and go to state 172
+    math_exp                       shift and go to state 173
     factor                         shift and go to state 43
     stack_call                     shift and go to state 32
 
-state 144
+state 140
 
     (70) term_alt -> * factor . term_alt
     (70) term_alt -> . * factor term_alt
@@ -2747,8 +2701,8 @@ state 144
     (72) term_alt -> . empty
     (104) empty -> .
 
-    *               shift and go to state 98
-    /               shift and go to state 99
+    *               shift and go to state 93
+    /               shift and go to state 94
     +               reduce using rule 104 (empty -> .)
     -               reduce using rule 104 (empty -> .)
     <               reduce using rule 104 (empty -> .)
@@ -2761,10 +2715,10 @@ state 144
     )               reduce using rule 104 (empty -> .)
     ,               reduce using rule 104 (empty -> .)
 
-    empty                          shift and go to state 97
-    term_alt                       shift and go to state 173
+    empty                          shift and go to state 92
+    term_alt                       shift and go to state 174
 
-state 145
+state 141
 
     (71) term_alt -> / factor . term_alt
     (70) term_alt -> . * factor term_alt
@@ -2772,8 +2726,8 @@ state 145
     (72) term_alt -> . empty
     (104) empty -> .
 
-    *               shift and go to state 98
-    /               shift and go to state 99
+    *               shift and go to state 93
+    /               shift and go to state 94
     +               reduce using rule 104 (empty -> .)
     -               reduce using rule 104 (empty -> .)
     <               reduce using rule 104 (empty -> .)
@@ -2786,10 +2740,10 @@ state 145
     )               reduce using rule 104 (empty -> .)
     ,               reduce using rule 104 (empty -> .)
 
-    empty                          shift and go to state 97
-    term_alt                       shift and go to state 174
+    empty                          shift and go to state 92
+    term_alt                       shift and go to state 175
 
-state 146
+state 142
 
     (50) for_block -> FOR number FOR_TO . number SKIP number block
     (55) number -> . FLOAT
@@ -2798,9 +2752,9 @@ state 146
     FLOAT           shift and go to state 27
     INT             shift and go to state 60
 
-    number                         shift and go to state 175
+    number                         shift and go to state 176
 
-state 147
+state 143
 
     (67) math_exp_alt -> - term . math_exp_alt
     (66) math_exp_alt -> . + term math_exp_alt
@@ -2808,31 +2762,8 @@ state 147
     (68) math_exp_alt -> . empty
     (104) empty -> .
 
-    +               shift and go to state 105
-    -               shift and go to state 102
-    <               reduce using rule 104 (empty -> .)
-    >               reduce using rule 104 (empty -> .)
-    EQ              reduce using rule 104 (empty -> .)
-    NE              reduce using rule 104 (empty -> .)
-    AND             reduce using rule 104 (empty -> .)
-    OR              reduce using rule 104 (empty -> .)
-    ;               reduce using rule 104 (empty -> .)
-    )               reduce using rule 104 (empty -> .)
-    ,               reduce using rule 104 (empty -> .)
-
-    math_exp_alt                   shift and go to state 176
-    empty                          shift and go to state 104
-
-state 148
-
-    (66) math_exp_alt -> + term . math_exp_alt
-    (66) math_exp_alt -> . + term math_exp_alt
-    (67) math_exp_alt -> . - term math_exp_alt
-    (68) math_exp_alt -> . empty
-    (104) empty -> .
-
-    +               shift and go to state 105
-    -               shift and go to state 102
+    +               shift and go to state 100
+    -               shift and go to state 97
     <               reduce using rule 104 (empty -> .)
     >               reduce using rule 104 (empty -> .)
     EQ              reduce using rule 104 (empty -> .)
@@ -2844,28 +2775,88 @@ state 148
     ,               reduce using rule 104 (empty -> .)
 
     math_exp_alt                   shift and go to state 177
-    empty                          shift and go to state 104
+    empty                          shift and go to state 99
 
-state 149
+state 144
+
+    (66) math_exp_alt -> + term . math_exp_alt
+    (66) math_exp_alt -> . + term math_exp_alt
+    (67) math_exp_alt -> . - term math_exp_alt
+    (68) math_exp_alt -> . empty
+    (104) empty -> .
+
+    +               shift and go to state 100
+    -               shift and go to state 97
+    <               reduce using rule 104 (empty -> .)
+    >               reduce using rule 104 (empty -> .)
+    EQ              reduce using rule 104 (empty -> .)
+    NE              reduce using rule 104 (empty -> .)
+    AND             reduce using rule 104 (empty -> .)
+    OR              reduce using rule 104 (empty -> .)
+    ;               reduce using rule 104 (empty -> .)
+    )               reduce using rule 104 (empty -> .)
+    ,               reduce using rule 104 (empty -> .)
+
+    math_exp_alt                   shift and go to state 178
+    empty                          shift and go to state 99
+
+state 145
 
     (88) comparison -> math_exp comparison_op math_exp .
 
     AND             reduce using rule 88 (comparison -> math_exp comparison_op math_exp .)
     OR              reduce using rule 88 (comparison -> math_exp comparison_op math_exp .)
     ;               reduce using rule 88 (comparison -> math_exp comparison_op math_exp .)
-    ,               reduce using rule 88 (comparison -> math_exp comparison_op math_exp .)
     )               reduce using rule 88 (comparison -> math_exp comparison_op math_exp .)
+    ,               reduce using rule 88 (comparison -> math_exp comparison_op math_exp .)
+
+
+state 146
+
+    (103) stack_method -> PEEK . ( )
+
+    (               shift and go to state 179
+
+
+state 147
+
+    (100) stack_call -> ID . stack_method .
+
+    *               reduce using rule 100 (stack_call -> ID . stack_method .)
+    /               reduce using rule 100 (stack_call -> ID . stack_method .)
+    +               reduce using rule 100 (stack_call -> ID . stack_method .)
+    -               reduce using rule 100 (stack_call -> ID . stack_method .)
+    <               reduce using rule 100 (stack_call -> ID . stack_method .)
+    >               reduce using rule 100 (stack_call -> ID . stack_method .)
+    EQ              reduce using rule 100 (stack_call -> ID . stack_method .)
+    NE              reduce using rule 100 (stack_call -> ID . stack_method .)
+    AND             reduce using rule 100 (stack_call -> ID . stack_method .)
+    OR              reduce using rule 100 (stack_call -> ID . stack_method .)
+    ;               reduce using rule 100 (stack_call -> ID . stack_method .)
+    )               reduce using rule 100 (stack_call -> ID . stack_method .)
+    ,               reduce using rule 100 (stack_call -> ID . stack_method .)
+
+
+state 148
+
+    (101) stack_method -> POP . ( )
+
+    (               shift and go to state 180
+
+
+state 149
+
+    (102) stack_method -> PUSH . ( ID check_variable )
+
+    (               shift and go to state 181
 
 
 state 150
 
     (45) prop -> ID . ID .
 
-    =               reduce using rule 45 (prop -> ID . ID .)
     (               reduce using rule 45 (prop -> ID . ID .)
-    POP             reduce using rule 45 (prop -> ID . ID .)
-    PUSH            reduce using rule 45 (prop -> ID . ID .)
-    PEEK            reduce using rule 45 (prop -> ID . ID .)
+    =               reduce using rule 45 (prop -> ID . ID .)
 
 
 state 151
@@ -2873,18 +2864,15 @@ state 151
     (47) if_block -> IF ( exp . ) block
     (48) if_block -> IF ( exp . ) block ELSE block
 
-    )               shift and go to state 178
+    )               shift and go to state 182
 
 
 state 152
 
     (44) prop -> THIS . ID .
 
-    =               reduce using rule 44 (prop -> THIS . ID .)
     (               reduce using rule 44 (prop -> THIS . ID .)
-    POP             reduce using rule 44 (prop -> THIS . ID .)
-    PUSH            reduce using rule 44 (prop -> THIS . ID .)
-    PEEK            reduce using rule 44 (prop -> THIS . ID .)
+    =               reduce using rule 44 (prop -> THIS . ID .)
 
 
 state 153
@@ -2899,9 +2887,9 @@ state 154
     (27) function -> # ID neg_lookup : return_type . params scope_function func_block
     (28) params -> . ( attrs )
 
-    (               shift and go to state 180
+    (               shift and go to state 184
 
-    params                         shift and go to state 179
+    params                         shift and go to state 183
 
 state 155
 
@@ -2922,7 +2910,7 @@ state 156
     }               reduce using rule 104 (empty -> .)
 
     function                       shift and go to state 7
-    functions                      shift and go to state 181
+    functions                      shift and go to state 185
     empty                          shift and go to state 10
 
 state 157
@@ -2937,18 +2925,18 @@ state 158
 
     (23) constructor -> ~ . ID params scope_constructor func_block
 
-    ID              shift and go to state 182
+    ID              shift and go to state 186
 
 
 state 159
 
     (14) type -> ID check_class .
 
+    (               reduce using rule 14 (type -> ID check_class .)
     =               reduce using rule 14 (type -> ID check_class .)
     ;               reduce using rule 14 (type -> ID check_class .)
     ,               reduce using rule 14 (type -> ID check_class .)
     )               reduce using rule 14 (type -> ID check_class .)
-    (               reduce using rule 14 (type -> ID check_class .)
 
 
 state 160
@@ -2962,61 +2950,101 @@ state 161
 
     (43) constructor_call -> ID . ( args )
 
-    (               shift and go to state 183
+    (               shift and go to state 187
 
 
 state 162
 
     (62) read -> READ ( string ) .
 
+    ;               reduce using rule 62 (read -> READ ( string ) .)
     )               reduce using rule 62 (read -> READ ( string ) .)
     ,               reduce using rule 62 (read -> READ ( string ) .)
-    ;               reduce using rule 62 (read -> READ ( string ) .)
 
 
 state 163
 
-    (49) while_block -> WHILE ( exp ) . block
-    (54) block -> . { statements }
+    (63) string -> ID check_string .
 
-    {               shift and go to state 184
+    )               reduce using rule 63 (string -> ID check_string .)
 
-    block                          shift and go to state 185
 
 state 164
 
-    (95) call -> stack_call ( args ) .
+    (110) check_string -> empty .
 
-    *               reduce using rule 95 (call -> stack_call ( args ) .)
-    /               reduce using rule 95 (call -> stack_call ( args ) .)
-    +               reduce using rule 95 (call -> stack_call ( args ) .)
-    -               reduce using rule 95 (call -> stack_call ( args ) .)
-    <               reduce using rule 95 (call -> stack_call ( args ) .)
-    >               reduce using rule 95 (call -> stack_call ( args ) .)
-    EQ              reduce using rule 95 (call -> stack_call ( args ) .)
-    NE              reduce using rule 95 (call -> stack_call ( args ) .)
-    AND             reduce using rule 95 (call -> stack_call ( args ) .)
-    OR              reduce using rule 95 (call -> stack_call ( args ) .)
-    ,               reduce using rule 95 (call -> stack_call ( args ) .)
-    )               reduce using rule 95 (call -> stack_call ( args ) .)
-    ;               reduce using rule 95 (call -> stack_call ( args ) .)
+    )               reduce using rule 110 (check_string -> empty .)
 
 
 state 165
+
+    (49) while_block -> WHILE ( exp ) . block
+    (54) block -> . { statements }
+
+    {               shift and go to state 188
+
+    block                          shift and go to state 189
+
+state 166
+
+    (51) print_stmt -> PRINT ( exp ) . ;
+
+    ;               shift and go to state 190
+
+
+state 167
+
+    (81) log_a_alt -> AND log_b log_a_alt .
+
+    OR              reduce using rule 81 (log_a_alt -> AND log_b log_a_alt .)
+    ;               reduce using rule 81 (log_a_alt -> AND log_b log_a_alt .)
+    )               reduce using rule 81 (log_a_alt -> AND log_b log_a_alt .)
+    ,               reduce using rule 81 (log_a_alt -> AND log_b log_a_alt .)
+
+
+state 168
+
+    (78) logic_exp_alt -> OR log_a logic_exp_alt .
+
+    ;               reduce using rule 78 (logic_exp_alt -> OR log_a logic_exp_alt .)
+    )               reduce using rule 78 (logic_exp_alt -> OR log_a logic_exp_alt .)
+    ,               reduce using rule 78 (logic_exp_alt -> OR log_a logic_exp_alt .)
+
+
+state 169
+
+    (94) call -> prop ( args ) .
+
+    *               reduce using rule 94 (call -> prop ( args ) .)
+    /               reduce using rule 94 (call -> prop ( args ) .)
+    +               reduce using rule 94 (call -> prop ( args ) .)
+    -               reduce using rule 94 (call -> prop ( args ) .)
+    <               reduce using rule 94 (call -> prop ( args ) .)
+    >               reduce using rule 94 (call -> prop ( args ) .)
+    EQ              reduce using rule 94 (call -> prop ( args ) .)
+    NE              reduce using rule 94 (call -> prop ( args ) .)
+    AND             reduce using rule 94 (call -> prop ( args ) .)
+    OR              reduce using rule 94 (call -> prop ( args ) .)
+    ,               reduce using rule 94 (call -> prop ( args ) .)
+    )               reduce using rule 94 (call -> prop ( args ) .)
+    ;               reduce using rule 94 (call -> prop ( args ) .)
+
+
+state 170
 
     (96) args -> exp args_aux .
 
     )               reduce using rule 96 (args -> exp args_aux .)
 
 
-state 166
+state 171
 
     (99) args_aux -> empty .
 
     )               reduce using rule 99 (args_aux -> empty .)
 
 
-state 167
+state 172
 
     (98) args_aux -> , . exp args_aux
     (58) exp -> . read
@@ -3039,15 +3067,15 @@ state 167
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
+    (95) call -> . stack_call
+    (100) stack_call -> . ID . stack_method
 
     STRING          shift and go to state 48
     READ            shift and go to state 29
@@ -3072,62 +3100,17 @@ state 167
     read                           shift and go to state 40
     term                           shift and go to state 51
     comparison                     shift and go to state 55
-    exp                            shift and go to state 186
+    exp                            shift and go to state 191
     assign                         shift and go to state 63
 
-state 168
-
-    (51) print_stmt -> PRINT ( exp ) . ;
-
-    ;               shift and go to state 187
-
-
-state 169
-
-    (81) log_a_alt -> AND log_b log_a_alt .
-
-    OR              reduce using rule 81 (log_a_alt -> AND log_b log_a_alt .)
-    ;               reduce using rule 81 (log_a_alt -> AND log_b log_a_alt .)
-    )               reduce using rule 81 (log_a_alt -> AND log_b log_a_alt .)
-    ,               reduce using rule 81 (log_a_alt -> AND log_b log_a_alt .)
-
-
-state 170
-
-    (78) logic_exp_alt -> OR log_a logic_exp_alt .
-
-    ;               reduce using rule 78 (logic_exp_alt -> OR log_a logic_exp_alt .)
-    )               reduce using rule 78 (logic_exp_alt -> OR log_a logic_exp_alt .)
-    ,               reduce using rule 78 (logic_exp_alt -> OR log_a logic_exp_alt .)
-
-
-state 171
-
-    (94) call -> prop ( args ) .
-
-    *               reduce using rule 94 (call -> prop ( args ) .)
-    /               reduce using rule 94 (call -> prop ( args ) .)
-    +               reduce using rule 94 (call -> prop ( args ) .)
-    -               reduce using rule 94 (call -> prop ( args ) .)
-    <               reduce using rule 94 (call -> prop ( args ) .)
-    >               reduce using rule 94 (call -> prop ( args ) .)
-    EQ              reduce using rule 94 (call -> prop ( args ) .)
-    NE              reduce using rule 94 (call -> prop ( args ) .)
-    AND             reduce using rule 94 (call -> prop ( args ) .)
-    OR              reduce using rule 94 (call -> prop ( args ) .)
-    ,               reduce using rule 94 (call -> prop ( args ) .)
-    )               reduce using rule 94 (call -> prop ( args ) .)
-    ;               reduce using rule 94 (call -> prop ( args ) .)
-
-
-state 172
+state 173
 
     (76) factor -> ( math_exp . )
 
-    )               shift and go to state 139
+    )               shift and go to state 133
 
 
-state 173
+state 174
 
     (70) term_alt -> * factor term_alt .
 
@@ -3144,7 +3127,7 @@ state 173
     ,               reduce using rule 70 (term_alt -> * factor term_alt .)
 
 
-state 174
+state 175
 
     (71) term_alt -> / factor term_alt .
 
@@ -3161,14 +3144,14 @@ state 174
     ,               reduce using rule 71 (term_alt -> / factor term_alt .)
 
 
-state 175
+state 176
 
     (50) for_block -> FOR number FOR_TO number . SKIP number block
 
-    SKIP            shift and go to state 188
+    SKIP            shift and go to state 192
 
 
-state 176
+state 177
 
     (67) math_exp_alt -> - term math_exp_alt .
 
@@ -3183,7 +3166,7 @@ state 176
     ,               reduce using rule 67 (math_exp_alt -> - term math_exp_alt .)
 
 
-state 177
+state 178
 
     (66) math_exp_alt -> + term math_exp_alt .
 
@@ -3198,17 +3181,38 @@ state 177
     ,               reduce using rule 66 (math_exp_alt -> + term math_exp_alt .)
 
 
-state 178
+state 179
+
+    (103) stack_method -> PEEK ( . )
+
+    )               shift and go to state 193
+
+
+state 180
+
+    (101) stack_method -> POP ( . )
+
+    )               shift and go to state 194
+
+
+state 181
+
+    (102) stack_method -> PUSH ( . ID check_variable )
+
+    ID              shift and go to state 195
+
+
+state 182
 
     (47) if_block -> IF ( exp ) . block
     (48) if_block -> IF ( exp ) . block ELSE block
     (54) block -> . { statements }
 
-    {               shift and go to state 184
+    {               shift and go to state 188
 
-    block                          shift and go to state 189
+    block                          shift and go to state 196
 
-state 179
+state 183
 
     (27) function -> # ID neg_lookup : return_type params . scope_function func_block
     (106) scope_function -> . empty
@@ -3216,10 +3220,10 @@ state 179
 
     {               reduce using rule 104 (empty -> .)
 
-    scope_function                 shift and go to state 190
-    empty                          shift and go to state 191
+    scope_function                 shift and go to state 197
+    empty                          shift and go to state 198
 
-state 180
+state 184
 
     (28) params -> ( . attrs )
     (29) attrs -> . attr attrs_alt
@@ -3230,27 +3234,27 @@ state 180
     ID              shift and go to state 24
     )               reduce using rule 104 (empty -> .)
 
-    attrs                          shift and go to state 192
-    empty                          shift and go to state 193
-    attr                           shift and go to state 194
+    attrs                          shift and go to state 199
+    empty                          shift and go to state 200
+    attr                           shift and go to state 201
 
-state 181
+state 185
 
     (22) class_block -> { vars constructor functions . }
 
-    }               shift and go to state 195
+    }               shift and go to state 202
 
 
-state 182
+state 186
 
     (23) constructor -> ~ ID . params scope_constructor func_block
     (28) params -> . ( attrs )
 
-    (               shift and go to state 180
+    (               shift and go to state 184
 
-    params                         shift and go to state 196
+    params                         shift and go to state 203
 
-state 183
+state 187
 
     (43) constructor_call -> ID ( . args )
     (96) args -> . exp args_aux
@@ -3276,15 +3280,15 @@ state 183
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
+    (95) call -> . stack_call
+    (100) stack_call -> . ID . stack_method
 
     STRING          shift and go to state 48
     )               reduce using rule 104 (empty -> .)
@@ -3306,16 +3310,16 @@ state 183
     math_exp                       shift and go to state 52
     factor                         shift and go to state 43
     call                           shift and go to state 44
-    empty                          shift and go to state 132
+    empty                          shift and go to state 135
     logic_exp                      shift and go to state 46
     read                           shift and go to state 40
-    args                           shift and go to state 197
+    args                           shift and go to state 204
     term                           shift and go to state 51
     comparison                     shift and go to state 55
-    exp                            shift and go to state 134
+    exp                            shift and go to state 137
     assign                         shift and go to state 63
 
-state 184
+state 188
 
     (54) block -> { . statements }
     (34) statements -> . statement
@@ -3355,15 +3359,15 @@ state 184
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
+    (95) call -> . stack_call
+    (100) stack_call -> . ID . stack_method
 
     }               reduce using rule 104 (empty -> .)
     IF              shift and go to state 54
@@ -3382,7 +3386,7 @@ state 184
     INT             shift and go to state 60
 
     for_block                      shift and go to state 26
-    statements                     shift and go to state 198
+    statements                     shift and go to state 205
     number                         shift and go to state 30
     stack_call                     shift and go to state 32
     log_b                          shift and go to state 36
@@ -3406,7 +3410,7 @@ state 184
     exp                            shift and go to state 62
     assign                         shift and go to state 63
 
-state 185
+state 189
 
     (49) while_block -> WHILE ( exp ) block .
 
@@ -3414,20 +3418,7 @@ state 185
     }               reduce using rule 49 (while_block -> WHILE ( exp ) block .)
 
 
-state 186
-
-    (98) args_aux -> , exp . args_aux
-    (98) args_aux -> . , exp args_aux
-    (99) args_aux -> . empty
-    (104) empty -> .
-
-    ,               shift and go to state 167
-    )               reduce using rule 104 (empty -> .)
-
-    args_aux                       shift and go to state 199
-    empty                          shift and go to state 166
-
-state 187
+state 190
 
     (51) print_stmt -> PRINT ( exp ) ; .
 
@@ -3435,7 +3426,20 @@ state 187
     $end            reduce using rule 51 (print_stmt -> PRINT ( exp ) ; .)
 
 
-state 188
+state 191
+
+    (98) args_aux -> , exp . args_aux
+    (98) args_aux -> . , exp args_aux
+    (99) args_aux -> . empty
+    (104) empty -> .
+
+    ,               shift and go to state 172
+    )               reduce using rule 104 (empty -> .)
+
+    args_aux                       shift and go to state 206
+    empty                          shift and go to state 171
+
+state 192
 
     (50) for_block -> FOR number FOR_TO number SKIP . number block
     (55) number -> . FLOAT
@@ -3444,62 +3448,111 @@ state 188
     FLOAT           shift and go to state 27
     INT             shift and go to state 60
 
-    number                         shift and go to state 200
+    number                         shift and go to state 207
 
-state 189
+state 193
+
+    (103) stack_method -> PEEK ( ) .
+
+    *               reduce using rule 103 (stack_method -> PEEK ( ) .)
+    /               reduce using rule 103 (stack_method -> PEEK ( ) .)
+    +               reduce using rule 103 (stack_method -> PEEK ( ) .)
+    -               reduce using rule 103 (stack_method -> PEEK ( ) .)
+    <               reduce using rule 103 (stack_method -> PEEK ( ) .)
+    >               reduce using rule 103 (stack_method -> PEEK ( ) .)
+    EQ              reduce using rule 103 (stack_method -> PEEK ( ) .)
+    NE              reduce using rule 103 (stack_method -> PEEK ( ) .)
+    AND             reduce using rule 103 (stack_method -> PEEK ( ) .)
+    OR              reduce using rule 103 (stack_method -> PEEK ( ) .)
+    ;               reduce using rule 103 (stack_method -> PEEK ( ) .)
+    )               reduce using rule 103 (stack_method -> PEEK ( ) .)
+    ,               reduce using rule 103 (stack_method -> PEEK ( ) .)
+
+
+state 194
+
+    (101) stack_method -> POP ( ) .
+
+    *               reduce using rule 101 (stack_method -> POP ( ) .)
+    /               reduce using rule 101 (stack_method -> POP ( ) .)
+    +               reduce using rule 101 (stack_method -> POP ( ) .)
+    -               reduce using rule 101 (stack_method -> POP ( ) .)
+    <               reduce using rule 101 (stack_method -> POP ( ) .)
+    >               reduce using rule 101 (stack_method -> POP ( ) .)
+    EQ              reduce using rule 101 (stack_method -> POP ( ) .)
+    NE              reduce using rule 101 (stack_method -> POP ( ) .)
+    AND             reduce using rule 101 (stack_method -> POP ( ) .)
+    OR              reduce using rule 101 (stack_method -> POP ( ) .)
+    ;               reduce using rule 101 (stack_method -> POP ( ) .)
+    )               reduce using rule 101 (stack_method -> POP ( ) .)
+    ,               reduce using rule 101 (stack_method -> POP ( ) .)
+
+
+state 195
+
+    (102) stack_method -> PUSH ( ID . check_variable )
+    (108) check_variable -> . empty
+    (104) empty -> .
+
+    )               reduce using rule 104 (empty -> .)
+
+    check_variable                 shift and go to state 208
+    empty                          shift and go to state 209
+
+state 196
 
     (47) if_block -> IF ( exp ) block .
     (48) if_block -> IF ( exp ) block . ELSE block
 
-    $end            reduce using rule 47 (if_block -> IF ( exp ) block .)
     }               reduce using rule 47 (if_block -> IF ( exp ) block .)
-    ELSE            shift and go to state 201
+    $end            reduce using rule 47 (if_block -> IF ( exp ) block .)
+    ELSE            shift and go to state 210
 
 
-state 190
+state 197
 
     (27) function -> # ID neg_lookup : return_type params scope_function . func_block
     (33) func_block -> . { vars statements }
 
-    {               shift and go to state 203
+    {               shift and go to state 212
 
-    func_block                     shift and go to state 202
+    func_block                     shift and go to state 211
 
-state 191
+state 198
 
     (106) scope_function -> empty .
 
     {               reduce using rule 106 (scope_function -> empty .)
 
 
-state 192
+state 199
 
     (28) params -> ( attrs . )
 
-    )               shift and go to state 204
+    )               shift and go to state 213
 
 
-state 193
+state 200
 
     (30) attrs -> empty .
 
     )               reduce using rule 30 (attrs -> empty .)
 
 
-state 194
+state 201
 
     (29) attrs -> attr . attrs_alt
     (31) attrs_alt -> . , attr attrs_alt
     (32) attrs_alt -> . empty
     (104) empty -> .
 
-    ,               shift and go to state 205
+    ,               shift and go to state 214
     )               reduce using rule 104 (empty -> .)
 
-    empty                          shift and go to state 206
-    attrs_alt                      shift and go to state 207
+    empty                          shift and go to state 215
+    attrs_alt                      shift and go to state 216
 
-state 195
+state 202
 
     (22) class_block -> { vars constructor functions } .
 
@@ -3523,7 +3576,7 @@ state 195
     $end            reduce using rule 22 (class_block -> { vars constructor functions } .)
 
 
-state 196
+state 203
 
     (23) constructor -> ~ ID params . scope_constructor func_block
     (107) scope_constructor -> . empty
@@ -3531,49 +3584,63 @@ state 196
 
     {               reduce using rule 104 (empty -> .)
 
-    scope_constructor              shift and go to state 208
-    empty                          shift and go to state 209
+    scope_constructor              shift and go to state 217
+    empty                          shift and go to state 218
 
-state 197
+state 204
 
     (43) constructor_call -> ID ( args . )
 
-    )               shift and go to state 210
+    )               shift and go to state 219
 
 
-state 198
+state 205
 
     (54) block -> { statements . }
 
-    }               shift and go to state 211
+    }               shift and go to state 220
 
 
-state 199
+state 206
 
     (98) args_aux -> , exp args_aux .
 
     )               reduce using rule 98 (args_aux -> , exp args_aux .)
 
 
-state 200
+state 207
 
     (50) for_block -> FOR number FOR_TO number SKIP number . block
     (54) block -> . { statements }
 
-    {               shift and go to state 184
+    {               shift and go to state 188
 
-    block                          shift and go to state 212
+    block                          shift and go to state 221
 
-state 201
+state 208
+
+    (102) stack_method -> PUSH ( ID check_variable . )
+
+    )               shift and go to state 222
+
+
+state 209
+
+    (108) check_variable -> empty .
+
+    )               reduce using rule 108 (check_variable -> empty .)
+
+
+state 210
 
     (48) if_block -> IF ( exp ) block ELSE . block
     (54) block -> . { statements }
 
-    {               shift and go to state 184
+    {               shift and go to state 188
 
-    block                          shift and go to state 213
+    block                          shift and go to state 223
 
-state 202
+state 211
 
     (27) function -> # ID neg_lookup : return_type params scope_function func_block .
 
@@ -3597,7 +3664,7 @@ state 202
     }               reduce using rule 27 (function -> # ID neg_lookup : return_type params scope_function func_block .)
 
 
-state 203
+state 212
 
     (33) func_block -> { . vars statements }
     (2) vars -> . var vars
@@ -3622,73 +3689,73 @@ state 203
     INT             reduce using rule 104 (empty -> .)
     }               reduce using rule 104 (empty -> .)
 
-    vars                           shift and go to state 214
+    vars                           shift and go to state 224
     var                            shift and go to state 18
     empty                          shift and go to state 19
 
-state 204
+state 213
 
     (28) params -> ( attrs ) .
 
     {               reduce using rule 28 (params -> ( attrs ) .)
 
 
-state 205
+state 214
 
     (31) attrs_alt -> , . attr attrs_alt
     (5) attr -> . ID : type
 
     ID              shift and go to state 24
 
-    attr                           shift and go to state 215
+    attr                           shift and go to state 225
 
-state 206
+state 215
 
     (32) attrs_alt -> empty .
 
     )               reduce using rule 32 (attrs_alt -> empty .)
 
 
-state 207
+state 216
 
     (29) attrs -> attr attrs_alt .
 
     )               reduce using rule 29 (attrs -> attr attrs_alt .)
 
 
-state 208
+state 217
 
     (23) constructor -> ~ ID params scope_constructor . func_block
     (33) func_block -> . { vars statements }
 
-    {               shift and go to state 203
+    {               shift and go to state 212
 
-    func_block                     shift and go to state 216
+    func_block                     shift and go to state 226
 
-state 209
+state 218
 
     (107) scope_constructor -> empty .
 
     {               reduce using rule 107 (scope_constructor -> empty .)
 
 
-state 210
+state 219
 
     (43) constructor_call -> ID ( args ) .
 
     ;               reduce using rule 43 (constructor_call -> ID ( args ) .)
 
 
-state 211
+state 220
 
     (54) block -> { statements } .
 
-    ELSE            reduce using rule 54 (block -> { statements } .)
     $end            reduce using rule 54 (block -> { statements } .)
     }               reduce using rule 54 (block -> { statements } .)
+    ELSE            reduce using rule 54 (block -> { statements } .)
 
 
-state 212
+state 221
 
     (50) for_block -> FOR number FOR_TO number SKIP number block .
 
@@ -3696,15 +3763,34 @@ state 212
     $end            reduce using rule 50 (for_block -> FOR number FOR_TO number SKIP number block .)
 
 
-state 213
+state 222
+
+    (102) stack_method -> PUSH ( ID check_variable ) .
+
+    *               reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+    /               reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+    +               reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+    -               reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+    <               reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+    >               reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+    EQ              reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+    NE              reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+    AND             reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+    OR              reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+    ;               reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+    )               reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+    ,               reduce using rule 102 (stack_method -> PUSH ( ID check_variable ) .)
+
+
+state 223
 
     (48) if_block -> IF ( exp ) block ELSE block .
 
-    $end            reduce using rule 48 (if_block -> IF ( exp ) block ELSE block .)
     }               reduce using rule 48 (if_block -> IF ( exp ) block ELSE block .)
+    $end            reduce using rule 48 (if_block -> IF ( exp ) block ELSE block .)
 
 
-state 214
+state 224
 
     (33) func_block -> { vars . statements }
     (34) statements -> . statement
@@ -3744,15 +3830,15 @@ state 214
     (89) comparison -> . math_exp
     (65) math_exp -> . term math_exp_alt
     (69) term -> . factor term_alt
-    (73) factor -> . ID
+    (73) factor -> . ID check_number
     (74) factor -> . number
     (75) factor -> . call
     (76) factor -> . ( math_exp )
     (55) number -> . FLOAT
     (56) number -> . INT
     (94) call -> . prop ( args )
-    (95) call -> . stack_call ( args )
-    (100) stack_call -> . prop stack_method
+    (95) call -> . stack_call
+    (100) stack_call -> . ID . stack_method
 
     }               reduce using rule 104 (empty -> .)
     IF              shift and go to state 54
@@ -3771,7 +3857,7 @@ state 214
     INT             shift and go to state 60
 
     for_block                      shift and go to state 26
-    statements                     shift and go to state 217
+    statements                     shift and go to state 227
     number                         shift and go to state 30
     stack_call                     shift and go to state 32
     log_b                          shift and go to state 36
@@ -3795,20 +3881,20 @@ state 214
     exp                            shift and go to state 62
     assign                         shift and go to state 63
 
-state 215
+state 225
 
     (31) attrs_alt -> , attr . attrs_alt
     (31) attrs_alt -> . , attr attrs_alt
     (32) attrs_alt -> . empty
     (104) empty -> .
 
-    ,               shift and go to state 205
+    ,               shift and go to state 214
     )               reduce using rule 104 (empty -> .)
 
-    empty                          shift and go to state 206
-    attrs_alt                      shift and go to state 218
+    empty                          shift and go to state 215
+    attrs_alt                      shift and go to state 228
 
-state 216
+state 226
 
     (23) constructor -> ~ ID params scope_constructor func_block .
 
@@ -3816,26 +3902,25 @@ state 216
     }               reduce using rule 23 (constructor -> ~ ID params scope_constructor func_block .)
 
 
-state 217
+state 227
 
     (33) func_block -> { vars statements . }
 
-    }               shift and go to state 219
+    }               shift and go to state 229
 
 
-state 218
+state 228
 
     (31) attrs_alt -> , attr attrs_alt .
 
     )               reduce using rule 31 (attrs_alt -> , attr attrs_alt .)
 
 
-state 219
+state 229
 
     (33) func_block -> { vars statements } .
 
     #               reduce using rule 33 (func_block -> { vars statements } .)
-    }               reduce using rule 33 (func_block -> { vars statements } .)
     $               reduce using rule 33 (func_block -> { vars statements } .)
     IF              reduce using rule 33 (func_block -> { vars statements } .)
     WHILE           reduce using rule 33 (func_block -> { vars statements } .)
@@ -3852,8 +3937,9 @@ state 219
     FLOAT           reduce using rule 33 (func_block -> { vars statements } .)
     INT             reduce using rule 33 (func_block -> { vars statements } .)
     $end            reduce using rule 33 (func_block -> { vars statements } .)
+    }               reduce using rule 33 (func_block -> { vars statements } .)
 
 WARNING: 
 WARNING: Conflicts:
 WARNING: 
-WARNING: shift/reduce conflict for ) in state 88 resolved as shift
+WARNING: shift/reduce conflict for ) in state 87 resolved as shift

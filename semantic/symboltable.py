@@ -110,7 +110,7 @@ class SymbolTable:
         if not current_class or not name in current_class.symbols:
             raise Exception('Property does not exist.')
         else:
-            return True
+            return current_class.symbols
 
     def current_class(self):
         self.set_search_scope()
@@ -133,12 +133,12 @@ class SymbolTable:
 
     def has_property(self, symbol, name):
         if not symbol.is_class_instance():
-            return False
+            raise Exception('No member property of non-class variable')
         object_class = symbol.var_type
         class_scope = self.table[object_class]
         if not name in class_scope.symbols:
             raise Exception('Variable has no property '+name)
-        return True
+        return class_scope.symbols[name]
 
     def check_property(self, name):
         value = self.lookup(name)
@@ -146,3 +146,29 @@ class SymbolTable:
             raise Exception('Invalid use of class '+name)
         else:
             return value
+
+    def check_string(self, name):
+        var_type = self.get_type(name)
+        if var_type != 'str': 
+            raise Exception('Variable '+name+' must be of type str')
+    
+    def check_number(self, name):
+        var_type = self.get_type(name)
+        if var_type not in ['int', 'float']:
+            raise Exception('Variable ' +name+ ' must be of type number')
+
+    def check_stack(self, name):
+        var_type = self.get_type(name)
+        if var_type != 'stack':
+            raise Exception('Variable '+name+' must be of type stack')
+
+    def get_type(self, name):
+        variable = self.check_variable(name)
+        return variable.var_type
+
+    def check_params(self, symbol, args):
+        if not symbol.is_callable:
+            raise Exception('Attempting to call a non-callable attribute')
+        if symbol.param_type != args:
+            raise Exception('Arguments do not match function')
+        return symbol
