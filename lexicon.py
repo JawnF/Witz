@@ -15,8 +15,6 @@ reserved = {
     'skip'      : 'SKIP',
     'or'        : 'OR',
     'and'       : 'AND',
-    'false'     : 'FALSE',
-    'true'      : 'TRUE',
     'this'      : 'THIS',
     'new'       : 'NEW',
     'pop'       : 'POP',
@@ -34,20 +32,29 @@ tokens = [
 	'FLOAT',
 	'STRING',
 	# operators
-	'NE',
-    'EQ',
+    'EQ', # equal
+	'NE', # not equal
+	'GE', # greater or equal
+	'LE', # less or equal
     # Witz custom declaration
     'RETURN',
     'FOR_TO',
 	] + list(reserved.values())
 
 # Estos son los caracteres que el lexer individualmente como tokens
-literals = r';,.:{}()=<>+-*/%^!$@#~'
+literals = r';,.:{}()=<>+-*/$@#~'
 
 # Token Rules
 def t_ID(t):
 	r'[a-zA-Z_][a-zA-Z0-9_]*'
-	t.type = reserved.get(t.value, 'ID')
+	if t.value == 'true':
+		t.type = 'INT'
+		t.value = 1
+	elif t.value == 'false':
+		t.type = 'INT'
+		t.value = 0
+	else:
+		t.type = reserved.get(t.value, 'ID')
 	return t
 
 def t_FLOAT(t):
@@ -73,6 +80,10 @@ def t_error(t):
 t_NE = r'!='
 
 t_EQ = r'=='
+
+t_LE = r'<='
+
+t_GE = r'>='
 
 t_RETURN = r'<-'
 

@@ -4,8 +4,13 @@ from semantic.symboltable import SymbolTable
 from semantic.variablesymbol import VariableSymbol
 from semantic.classsymbol import ClassSymbol
 from semantic.functionsymbol import FunctionSymbol
+from semantic.cube import SemanticCube
+from quads.temp import Temp
+from quads.quad_generator import QuadGenerator
 
 table = SymbolTable()
+oracle = SemanticCube()
+quads = QuadGenerator()
 
 # Grammar for the general structure of the program
 def p_program(p):
@@ -36,7 +41,10 @@ def p_init(p):
             | '=' NEW constructor_call
             | empty
     '''
-    p[0] = not not p[1]
+    p[0] = False
+    if len(p) == 3:
+        oracle.can_assign(p[-1][1], p[2][1])
+        p[0] = p[2]
 
 def p_type(p):
     '''type : INT_TYPE
@@ -52,6 +60,7 @@ def p_return_type(p):
     '''return_type : VOID
                    | type
     '''
+    p[0] = p[1]
 
 def p_classes(p):
     '''classes : class classes
@@ -117,7 +126,7 @@ def p_attrs_alt(p):
         p[0] = []
 
 def p_func_block(p):
-    '''func_block : '{' vars statements '}'
+    '''func_block : '{' vars statements return '}'
     '''
 
 def p_statements(p):
@@ -131,12 +140,16 @@ def p_statement(p):
                  | for_block
                  | print_stmt
                  | expr
-                 | return
     '''
 
 def p_assign(p):
     '''assign : prop '=' exp
     '''
+    prop = p[1]
+    table.check_variable_symbol(prop)
+    oracle.can_assign(p[1].var_type, p[3][1])
+    quads.generate(p[2], p[3], None, p[1])
+    p[0] = p[3]
 
 def p_constructor_call(p):
     '''constructor_call : ID '(' args ')'
@@ -162,8 +175,6 @@ def p_prop(p):
         # tercera regla
         p[0] = table.check_property(p[1])
 
-    
-
 def p_if_block(p):
     '''if_block : IF '(' exp ')' block
                 | IF '(' exp ')' block ELSE block
@@ -183,8 +194,12 @@ def p_print_stmt(p):
     
 def p_return(p):
     '''return : RETURN exp ';'
-              | RETURN ';'
+              | empty
     '''
+    if(len(p) > 3):
+        table.check_return(p[2][1])
+    else:
+        table.check_return('void')
 
 def p_block(p):
     '''block : '{' statements '}'
@@ -194,95 +209,145 @@ def p_number(p):
     '''number : FLOAT
               | INT
     '''
+    p[0] = (p[1], type(p[1]).__name__)
 
 def p_expr(p):
     '''expr : exp ';'
     '''
 
 def p_exp(p):
-    '''exp : read
-           | logic_exp
+    '''exp : read 
+           | math_or 
            | assign
-           | STRING
+           | string
     '''
-
-def p_read(p):
-    '''read : READ '(' string ')'
-    '''
+    p[0] = p[1]
 
 def p_string(p):
-    '''string : ID check_string
-              | STRING
+    '''string : STRING
+    '''
+    p[0] = (p[1], 'str')
+
+def p_read(p):
+    '''read : READ '(' read_type ')'
+    '''
+
+def p_read_type(p):
+    '''read_type  :  INT_TYPE
+                  |  FLOAT_TYPE
+                  |  STRING_TYPE   
     '''
 
 def p_math_exp(p):
     '''math_exp : term math_exp_alt
     '''
+    p[0] = p[2]
+    if p[2] == None:
+        p[0] = p[1]
 
 def p_math_exp_alt(p):
-    '''math_exp_alt : '+' term math_exp_alt
-                    | '-' term math_exp_alt 
+    '''math_exp_alt : '+' term new_quad math_exp_alt
+                    | '-' term new_quad math_exp_alt 
                     | empty 
     '''
+    if len(p) > 2:
+        p[0] = p[3]
 
 def p_term(p):
     '''term : factor term_alt
     '''
-
+    p[0] = p[2]
+    if p[2] == None:
+        p[0] = p[1]
+    
 def p_term_alt(p):
-    '''term_alt : '*' factor term_alt 
-                | '/' factor term_alt
+    '''term_alt : '*' factor new_quad term_alt 
+                | '/' factor new_quad term_alt
                 | empty
     '''
-
+    if len(p) > 2:
+        p[0] = p[3]
+        
+def p_new_quad(p):
+    '''new_quad : empty
+    '''
+    op = p[-2]
+    left = p[-3]
+    right = p[-1]
+    res_type = oracle.is_valid(op, left[1], right[1])
+    temp = Temp(res_type)
+    quads.generate(op, left[0], right[0], temp)
+    p[0] = (temp, res_type)
+    
 def p_factor(p):
-    '''factor : ID check_number
+    '''factor : id
               | number
-              | call
-              | '(' math_exp ')' 
+              | call 
+              | '(' math_or ')'
     '''
+    item = p[1]
+    if p[1] == '(':
+        item = p[2]
+    p[0] = item
 
-
-def p_logic_exp(p):
-    '''logic_exp : log_a logic_exp_alt
+def p_id(p):
+    '''id : ID
     '''
+    symbol = table.check_variable(p[1])
+    p[0] = (p[1], symbol.var_type)
 
-def p_logic_exp_alt(p):
-    '''logic_exp_alt : OR log_a logic_exp_alt
+def p_math_or(p):
+    '''math_or : math_and math_or_alt
+    '''
+    p[0] = p[2]
+    if p[2] == None:
+        p[0] = p[1]
+    
+
+def p_math_or_alt(p):
+    '''math_or_alt : OR math_and new_quad math_or_alt
+                   | empty
+    '''
+    if len(p) > 2:
+        p[0] = p[3]
+
+def p_math_and(p):
+    '''math_and : math_comp math_and_alt
+    '''
+    p[0] = p[2]
+    if p[2] == None:
+        p[0] = p[1]
+
+def p_math_and_alt(p):
+    '''math_and_alt : AND math_comp new_quad math_and_alt
+                    | empty
+    '''
+    if len(p) > 2:
+        p[0] = p[3]
+
+def p_math_comp(p):
+    '''math_comp : math_exp math_comp_alt
+    '''
+    p[0] = p[2]
+    if p[2] == None:
+        p[0] = p[1]
+
+def p_math_comp_alt(p):
+    '''math_comp_alt : comparison_op math_exp new_quad
                      | empty
     '''
-
-def p_log_a(p):
-    '''log_a : log_b log_a_alt
-    '''
-
-def p_log_a_alt(p):
-    '''log_a_alt : AND log_b log_a_alt
-                 | empty
-    '''
-
-def p_log_b(p):
-    '''log_b : '(' logic_exp ')' 
-             | bool
-             | comparison
-    '''
-
-def p_bool(p):
-    '''bool : TRUE
-            | FALSE
-    '''
-
-def p_comparison(p):
-    '''comparison : math_exp comparison_op math_exp
-                  | math_exp
-    '''
+    if len(p) > 2:
+        p[0] = p[3]
 
 def p_comparison_op(p):
     '''comparison_op : '<'
                      | '>'
                      | EQ
                      | NE
+                     | LE
+                     | GE
     '''
+    p[0] = p[1]
 
 def p_call(p):
     '''call : prop '(' args ')'
@@ -315,7 +380,7 @@ def p_stack_call(p):
 
 def p_stack_method(p):
     '''stack_method : POP '(' ')'
-                    | PUSH '(' ID check_variable ')'
+                    | PUSH '(' id ')'
                     | PEEK '(' ')'
     '''
 
@@ -326,7 +391,7 @@ def p_empty(p):
 def p_error(p):
     print("Syntax error in input!")
 
-# ------------------------- aqui vamos jsjsxd
+
 # Semantic actions 
 
 # Regla que se encarga de crear y abrir el scope de la clase
@@ -352,25 +417,10 @@ def p_scope_constructor(p):
     class_name = p[-2]
     table.set_constructor(class_name, FunctionSymbol(class_name, p[-1]))
 
-def p_check_variables(p):
-    '''check_variable : empty
-    '''
-    table.check_variable(p[-1]) 
-
 def p_check_class(p):
     '''check_class : empty
     '''
     table.check_class(p[-1])
-
-def p_check_string(p):
-    '''check_string : empty
-    '''
-    table.check_string(p[-1])
-
-def p_check_number(p):
-    '''check_number : empty
-    '''
-    table.check_number(p[-1])
 
 def p_neg_lookup(p):
     '''neg_lookup : empty

@@ -9,7 +9,7 @@ class SymbolTable:
     table = {}
 
     def __init__(self):
-        self.table[self.root] = Scope(None, 'global') 
+        self.table[self.root] = Scope(None, 'global', None) 
     
     def lookup(self, name):
         '''Recibe el nombre del ID a buscar, regresa true si
@@ -37,17 +37,17 @@ class SymbolTable:
         '''
         self.table[self.current_scope].symbols[id] = symbol
         if scope_type:
-            self.create_new_scope(id, scope_type)
+            self.create_new_scope(id, scope_type, symbol)
             if scope_type == 'function':
                 self.store_params(symbol)
 
-    def create_new_scope(self, name, scope_type):
+    def create_new_scope(self, name, scope_type, symbol):
         current_scope = self.current_scope
         if self.currently_in_class():
             new_scope = current_scope + '_' + name
         else:
             new_scope = name
-        self.table[new_scope] = Scope(current_scope, scope_type)
+        self.table[new_scope] = Scope(current_scope, scope_type, symbol)
         self.current_scope = new_scope
     
     def store_params(self, symbol):
@@ -147,15 +147,9 @@ class SymbolTable:
         else:
             return value
 
-    def check_string(self, name):
-        var_type = self.get_type(name)
-        if var_type != 'str': 
-            raise Exception('Variable '+name+' must be of type str')
-    
-    def check_number(self, name):
-        var_type = self.get_type(name)
-        if var_type not in ['int', 'float']:
-            raise Exception('Variable ' +name+ ' must be of type number')
+    def check_return(self, ret_type):
+        if self.scope().symbol.return_type != ret_type:
+            raise Exception('Cannot return '+ret_type+' in function of type '+self.scope().symbol.return_type) 
 
     def check_stack(self, name):
         var_type = self.get_type(name)
@@ -172,3 +166,7 @@ class SymbolTable:
         if symbol.param_type != args:
             raise Exception('Arguments do not match function')
         return symbol
+
+    def check_variable_symbol(self, sym):
+        if not isinstance(sym, VariableSymbol):
+            raise Exception('Cannot assign value to non-variable symbol')
