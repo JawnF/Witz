@@ -7,10 +7,12 @@ from semantic.functionsymbol import FunctionSymbol
 from semantic.cube import SemanticCube
 from quads.temp import Temp
 from quads.quad_generator import QuadGenerator
+from quads.flow_manager import FlowManager
 
 table = SymbolTable()
 oracle = SemanticCube()
 quads = QuadGenerator()
+flow = FlowManager(quads)
 
 # Grammar for the general structure of the program
 def p_program(p):
@@ -176,13 +178,17 @@ def p_prop(p):
         p[0] = table.check_property(p[1])
 
 def p_if_block(p):
-    '''if_block : IF '(' exp ')' block
-                | IF '(' exp ')' block ELSE block
+    '''if_block : IF '(' exp exp_evaluation  ')' block 
+                | IF '(' exp exp_evaluation ')' block after_if_block ELSE block
     '''
+    flow.if_after_block()
+
 
 def p_while_block(p):
-    '''while_block : WHILE '(' exp ')' block
+    '''while_block : WHILE '(' leave_breadcrumb exp exp_evaluation ')' block
     '''
+    flow.while_after_block()
+
     
 def p_for_block(p):
     '''for_block : FOR number FOR_TO number SKIP number block
@@ -426,5 +432,22 @@ def p_neg_lookup(p):
     '''neg_lookup : empty
     '''
     table.local_neg_lookup(p[-1])
+
+# Flow controls
+
+def p_exp_evaluation(p):
+    '''exp_evaluation : empty
+    '''
+    flow.exp_evaluation(Temp.last())
+
+def p_after_if_block(p):
+    '''after_if_block : empty
+    '''
+    flow.if_else_after_if_block() 
+
+def p_leave_breadcrumb(p):
+    '''leave_breadcrumb : empty
+    '''
+    flow.while_leave_breadcrumb()
 
 parser = yacc.yacc()

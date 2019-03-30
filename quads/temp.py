@@ -13,3 +13,6 @@ class Temp:
         Temp.live.remove(self.index)
         Temp.count = self.index
         
+    @staticmethod
+    def last():
+        return Temp.live[-1]
