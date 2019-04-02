@@ -1,0 +1,25 @@
+#!/usr/bin/python
+
+import sys
+import grammar
+
+if len(sys.argv) > 1:
+	filename = sys.argv[1]
+	file = open(filename, 'r')
+	try:
+		grammar.parser.parse(file.read())
+	except Exception as e:
+		print e
+	file.close()
+else:
+	count = 0
+	while(count < 3):
+		a = raw_input('-->')
+		if (a):
+			count = 0
+			try:
+				grammar.parser.parse(a)
+			except Exception as e:
+				print e
+		else:
+			count += 1
