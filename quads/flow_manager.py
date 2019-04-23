@@ -6,7 +6,8 @@ class FlowManager:
     def __init__(self, generator):
         self.quads = generator
 
-    def exp_evaluation(self, temp):
+    def exp_evaluation(self):
+        temp = Temp.last()
         self.quads.store_jump()
         self.generate_gotof(temp)
 
