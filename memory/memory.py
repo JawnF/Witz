@@ -11,9 +11,13 @@ class Memory:
         self.temps = TemporalMemory()
         self.consts = ConstMemory()
 
-    def get_address(scope, type):
-        {
-
+    def get_address(self, scope, type):
+        directory = {
+        	'global' : self.globals,
+        	'local' : self.locals,
+        	'temp' : self.temps,
+        	'const' : self.consts,
         }.get(scope)
+        return directory.get_next(type)
 
 
