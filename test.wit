@@ -1,5 +1,3 @@
-// Witz programming language
-
 @dog {
 	$name:str;
 	$fleas:stack;
@@ -27,6 +25,8 @@
 		}
 	}
 }
+
+#fun:tp(){}
 
 $name = input('Name your dog: ');
 $mydog:dog = new dog(name);
