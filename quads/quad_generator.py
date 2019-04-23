@@ -1,22 +1,17 @@
 from quad import Quad
 from temp import Temp
+from memory.addressmanager import AddressManager
 
 class QuadGenerator:
     quads = {}
     current_index = 1
     jumps = []
+    operators = ['+','=','-','*','/', 'GOTO', 'GOTOF', 'GOTOV',
+                 'PRINT', 'READ', 'OR', 'AND', 'CONST', 'ATTR', 'RETURN', 'VAR']
 
-    def generate(self, operator, left, right, result, pending = False):
-        quad = Quad(operator, left, right, result, pending)
-        if isinstance(left, Temp):
-            left.free()
-        if isinstance(right, Temp):
-            right.free()
-        self.quads[self.current_index] = quad
-        self.current_index += 1
-    
-    def generate_persistent(self, operator, left, right, result, pending = False):
-        quad = Quad(operator, left, right, result, pending)
+    def generate(self, operator, left, right, target_address, pending = False):
+        operator_type = self.operator_to_number(operator)
+        quad = Quad(operator_type, left, right, target_address, pending)
         self.quads[self.current_index] = quad
         self.current_index += 1
 
@@ -28,7 +23,15 @@ class QuadGenerator:
     
     def fill_jump(self, index):
         temp_quad = self.quads[index]
-        temp_quad.result = self.current_index
+        temp_quad.target = self.current_index
         self.quads[index] = temp_quad
 
+    def operator_to_number(self, operator):
+        return self.operators.index(operator)
     
+    def create_txt(self):
+        file = open("quads.txt","w+")
+        for quad in self.quads:
+            file.write(str(quad)+'\n')
+        file.close()
+            

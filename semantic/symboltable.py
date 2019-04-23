@@ -17,8 +17,8 @@ class SymbolTable:
         '''
         self.set_search_scope()
         exist = self.look_current_search_scope(name)
-        if not exist:
-            raise Exception('Value doesn\'t exist')
+        # if not exist:
+        #     raise Exception('Value doesn\'t exist')
         return exist
     
     def neg_lookup(self, name):

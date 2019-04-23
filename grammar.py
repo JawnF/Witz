@@ -25,14 +25,13 @@ def p_program(p):
 def p_declaration(p):
     '''declaration : '$' attr 
     '''
-    p[0] = manager.declare(p[2])
+    p[0] = (manager.declare(p[2]), p[2][1])
 
 def p_new(p):
     '''new : NEW constructor_call
     '''
     p[0] = p[2]
 
-    
 def p_attr(p):
     '''attr : ID ':' type
     '''
@@ -173,7 +172,7 @@ def p_constructor_call(p):
     # var_type = p[-3][1]
     # table.check_new(constructor, var_type)
     class_name = p[1]
-    p[0] = manager.instantiate(class_name)
+    p[0] = (manager.instantiate(class_name), class_name)
 
 def p_prop(p):
     '''prop : THIS '.' ID
@@ -197,7 +196,7 @@ def p_prop(p):
         # tercera regla
         # p[0] = table.check_property(p[1])
         prop_id = p[1]
-        p[0] = manager.property(prop_id)
+        p[0] = manager.id_property(prop_id)
 
 def p_if_block(p):
     '''if_block : IF '(' exp exp_evaluation  ')' block 
@@ -221,7 +220,7 @@ def p_print_stmt(p):
     '''print_stmt : PRINT '(' exp ')' ';'
     '''
     output = p[3]
-    manager.print(output)
+    manager.print_output(output)
     
 def p_return(p):
     '''return : RETURN exp ';'
@@ -338,6 +337,7 @@ def p_id(p):
     '''
     # symbol = table.check_variable(p[1])
     # p[0] = (p[1], symbol.var_type)
+    p[0] = manager.check_variable_exists(p[1])
 
 def p_math_or(p):
     '''math_or : math_and math_or_alt
@@ -396,7 +396,8 @@ def p_call(p):
     '''call : prop '(' args ')'
             | stack_call
     '''
-    table.check_params(p[1], p[3])
+    # table.check_params(p[1], p[3])
+    master.check_call_validity(p[1][0], p[3])
 
 def p_args(p):
     '''args : exp args_aux
@@ -419,7 +420,8 @@ def p_args_aux(p):
 def p_stack_call(p):
     '''stack_call : ID '.' stack_method
     '''
-    table.check_stack(p[1])
+    # table.check_stack(p[1])
+    manager.is_stack_type(p[1])
 
 def p_stack_method(p):
     '''stack_method : POP '(' ')'
@@ -433,7 +435,6 @@ def p_empty(p):
 
 def p_error(p):
     print("Syntax error in input!")
-
 
 # Semantic actions 
 
@@ -453,7 +454,8 @@ def p_scope_function(p):
     function_name = p[-5]
     return_type = p[-2]
     params = p[-1]
-    table.store(function_name, FunctionSymbol(return_type, params),'function')
+    # table.store(function_name, FunctionSymbol(return_type, params),'function')
+    manager.start_function_scope(function_name, return_type, params)
 
 def p_scope_constructor(p):
     '''scope_constructor : empty
@@ -461,24 +463,26 @@ def p_scope_constructor(p):
     constructor_name = p[-2]
     parameters =  p[-1]
     # table.set_constructor(class_name, FunctionSymbol(class_name, p[-1]))
-    manager.add_constructor(constructor_name, parameters)
+    manager.start_constructor_scope(constructor_name, parameters)
 
 def p_check_class(p):
     '''check_class : empty
     '''
-    table.check_class(p[-1])
+    # table.check_class(p[-1])
+    manager.check_class_exists(p[-1])
 
 def p_neg_lookup(p):
     '''neg_lookup : empty
     '''
-    table.local_neg_lookup(p[-1])
+    # table.local_neg_lookup(p[-1])
+    manager.id_does_not_exist(p[-1])
 
 # Flow controls
 
 def p_exp_evaluation(p):
     '''exp_evaluation : empty
     '''
-    flow.exp_evaluation(Temp.last())
+    manager.flow.exp_evaluation()
 
 def p_after_if_block(p):
     '''after_if_block : empty
@@ -489,6 +493,6 @@ def p_after_if_block(p):
 def p_leave_breadcrumb(p):
     '''leave_breadcrumb : empty
     '''
-    flow.while_leave_breadcrumb()
+    manager.flow.while_leave_breadcrumb()
 
 parser = yacc.yacc()
