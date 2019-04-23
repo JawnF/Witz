@@ -1,52 +1,60 @@
 import ply.yacc as yacc
 from lexicon import tokens
-from semantic.symboltable import SymbolTable
-from semantic.variablesymbol import VariableSymbol
-from semantic.classsymbol import ClassSymbol
-from semantic.functionsymbol import FunctionSymbol
-from semantic.cube import SemanticCube
-from quads.temp import Temp
-from quads.quad_generator import QuadGenerator
-from quads.flow_manager import FlowManager
 
-table = SymbolTable()
-oracle = SemanticCube()
-quads = QuadGenerator()
-flow = FlowManager(quads)
+from manager import StatementManager
+manager = StatementManager()
 
 # Grammar for the general structure of the program
 def p_program(p):
     '''program : classes functions vars statements
     '''
 
-def p_vars(p):
-    '''vars : var vars
-            | empty
-    '''
+# def p_vars(p):
+#     '''vars : var vars
+#             | empty
+#     '''
 
-def p_var(p):
-    '''var : '$' attr init ';'
-    '''
-    symbol = p[2]
-    if symbol[1] == 'stack' and p[3]:
-        raise Exception('Stack type variables cannot be initialized.')
-    table.store(symbol[0], VariableSymbol(symbol[1], p[3] != None), False)
+# def p_var(p):
+#     '''var : '$' attr init ';'
+#     '''
+#     symbol = p[2]
+#     if symbol[1] == 'stack' and p[3]:
+#         raise Exception('Stack type variables cannot be initialized.')
+#     table.store(symbol[0], VariableSymbol(symbol[1], p[3] != None), False)
 
+def p_declaration(p):
+    '''declaration : '$' attr 
+    '''
+    p[0] = manager.declare(p[2])
+
+def p_new(p):
+    '''new : NEW constructor_call
+    '''
+    p[0] = p[2]
+
+    
 def p_attr(p):
     '''attr : ID ':' type
     '''
-    table.neg_lookup(p[1])
+    # table.neg_lookup(p[1])
     p[0] = (p[1], p[3])
 
-def p_init(p):
-    '''init : '=' exp
-            | '=' NEW constructor_call
-            | empty
+def p_var(p):
+    '''var : prop 
+           | declaration
     '''
-    p[0] = False
-    if len(p) == 3:
-        oracle.can_assign(p[-1][1], p[2][1])
-        p[0] = p[2]
+    p[0] = p[1]
+
+# def p_init(p):
+#     '''init : '=' exp
+#             | '=' NEW constructor_call
+#             | empty
+    # '''
+    # p[0] = False
+ 
+# p[0] = manager.   if len(p) == 3:
+#         oracle.can_assign(p[-1][1], p[2][1])
+#         p[0] = p[2]
 
 def p_type(p):
     '''type : INT_TYPE
@@ -72,7 +80,8 @@ def p_classes(p):
 def p_class(p):
     '''class : '@' ID inheritance scope_class class_block
     '''
-    table.close_scope()
+    # table.close_scope()
+    manager.end_class_scope()
 
 def p_inheritance(p):
     '''inheritance : '<' ID check_class '>'
@@ -92,7 +101,8 @@ def p_constructor(p):
                    | empty
     '''
     if len(p) > 2 :
-        table.close_scope()
+        # table.close_scope()
+        manager.close_constructor_scope()
 
 def p_functions(p):
     '''functions : function functions
@@ -102,7 +112,8 @@ def p_functions(p):
 def p_function(p):
     '''function : '#' ID neg_lookup ':' return_type params scope_function func_block
     '''
-    table.close_scope()
+    # table.close_scope()
+    manager.close_function_scope()
 
 def p_params(p):
     '''params : '(' attrs ')'
@@ -128,11 +139,11 @@ def p_attrs_alt(p):
         p[0] = []
 
 def p_func_block(p):
-    '''func_block : '{' vars statements return '}'
+    '''func_block : '{' statements return '}'
     '''
 
 def p_statements(p):
-    '''statements : statement
+    '''statements : statement statements
                   | empty
     '''
 
@@ -145,20 +156,24 @@ def p_statement(p):
     '''
 
 def p_assign(p):
-    '''assign : prop '=' exp
+    '''assign : var '=' exp
     '''
-    prop = p[1]
-    table.check_variable_symbol(prop)
-    oracle.can_assign(p[1].var_type, p[3][1])
-    quads.generate(p[2], p[3], None, p[1])
-    p[0] = p[3]
+    var = p[1]
+    value = p[3]
+    # table.check_variable_symbol(prop)
+    # oracle.can_assign(p[1].var_type, p[3][1])
+    # quads.generate(p[2], p[3], None, p[1])
+    # p[0] = p[3]
+    p[0] = manager.assign(value, var)
 
 def p_constructor_call(p):
     '''constructor_call : ID '(' args ')'
     '''
-    constructor = p[1]
-    var_type = p[-3][1]
-    table.check_new(constructor, var_type)
+    # constructor = p[1]
+    # var_type = p[-3][1]
+    # table.check_new(constructor, var_type)
+    class_name = p[1]
+    p[0] = manager.instantiate(class_name)
 
 def p_prop(p):
     '''prop : THIS '.' ID
@@ -167,27 +182,35 @@ def p_prop(p):
     '''
     if p[1] == 'this':
         # primera regla
-        table.check_class_scope()
-        p[0] = table.check_class_property(p[3])
+        # table.check_class_scope()
+        # p[0] = table.check_class_property(p[3])
+        prop_id = p[3]
+        p[0] = manager.this_property(prop_id)
     elif len(p) == 4:
         # segunda regla
-        var_symbol = table.check_variable(p[1])
-        p[0] = table.has_property(var_symbol, p[3])
+        # var_symbol = table.check_variable(p[1])
+        # p[0] = table.has_property(var_symbol, p[3])
+        var_id = p[1]
+        prop_id = p[3]
+        p[0] = manager.var_property(var_id, prop_id)
     else:
         # tercera regla
-        p[0] = table.check_property(p[1])
+        # p[0] = table.check_property(p[1])
+        prop_id = p[1]
+        p[0] = manager.property(prop_id)
 
 def p_if_block(p):
     '''if_block : IF '(' exp exp_evaluation  ')' block 
                 | IF '(' exp exp_evaluation ')' block after_if_block ELSE block
     '''
-    flow.if_after_block()
+    # flow.if_after_block()
+    manager.flow.if_after_block()
 
 
 def p_while_block(p):
     '''while_block : WHILE '(' leave_breadcrumb exp exp_evaluation ')' block
     '''
-    flow.while_after_block()
+    manager.flow.while_after_block()
 
     
 def p_for_block(p):
@@ -197,52 +220,64 @@ def p_for_block(p):
 def p_print_stmt(p):
     '''print_stmt : PRINT '(' exp ')' ';'
     '''
+    output = p[3]
+    manager.print(output)
     
 def p_return(p):
     '''return : RETURN exp ';'
               | empty
     '''
     if(len(p) > 3):
-        table.check_return(p[2][1])
+        # table.check_return(p[2][1])
+        return_value = p[2]
+        manager.return_value(return_value)
     else:
-        table.check_return('void')
+        manager.return_void()
+        # table.check_return('void')
 
 def p_block(p):
     '''block : '{' statements '}'
     '''
    
 def p_number(p):
-    '''number : FLOAT
+    '''number : FLOAT empty
               | INT
     '''
-    p[0] = (p[1], type(p[1]).__name__)
+    value = p[1]
+    if len(p) > 2:
+        # FLOAT
+        p[0] = manager.float_constant(value)
+    else:
+        # INT
+        p[0] = manager.int_constant(value)
+    # p[0] = (p[1], type(p[1]).__name__)
 
 def p_expr(p):
     '''expr : exp ';'
     '''
+    temp_dir = p[1]
+    manager.free_temp_memory(temp_dir)
 
 def p_exp(p):
     '''exp : read 
            | math_or 
            | assign
            | string
+           | new
     '''
     p[0] = p[1]
-
+   
 def p_string(p):
     '''string : STRING
     '''
-    p[0] = (p[1], 'str')
+    value = p[1]
+    p[0] = manager.string_constant(value)
+    # p[0] = (p[1], 'str')
 
 def p_read(p):
-    '''read : READ '(' read_type ')'
+    '''read : READ '(' ')'
     '''
-
-def p_read_type(p):
-    '''read_type  :  INT_TYPE
-                  |  FLOAT_TYPE
-                  |  STRING_TYPE   
-    '''
+    p[0] = manager.read()
 
 def p_math_exp(p):
     '''math_exp : term math_exp_alt
@@ -258,6 +293,7 @@ def p_math_exp_alt(p):
     '''
     if len(p) > 2:
         p[0] = p[3]
+        
 
 def p_term(p):
     '''term : factor term_alt
@@ -280,10 +316,11 @@ def p_new_quad(p):
     op = p[-2]
     left = p[-3]
     right = p[-1]
-    res_type = oracle.is_valid(op, left[1], right[1])
-    temp = Temp(res_type)
-    quads.generate(op, left[0], right[0], temp)
-    p[0] = (temp, res_type)
+    p[0] = manager.operate(op, left, right)
+    # oracle.is_valid(op, left[1], right[1])
+    # temp = Temp(res_type)
+    # quads.generate(op, left[0], right[0], temp)
+    # p[0] = (temp, res_type)
     
 def p_factor(p):
     '''factor : id
@@ -299,8 +336,8 @@ def p_factor(p):
 def p_id(p):
     '''id : ID
     '''
-    symbol = table.check_variable(p[1])
-    p[0] = (p[1], symbol.var_type)
+    # symbol = table.check_variable(p[1])
+    # p[0] = (p[1], symbol.var_type)
 
 def p_math_or(p):
     '''math_or : math_and math_or_alt
@@ -406,7 +443,8 @@ def p_scope_class(p):
     '''
     class_name = p[-2]
     parent_class = p[-1]
-    table.store(class_name, ClassSymbol(parent_class), 'class')
+    # table.store(class_name, ClassSymbol(parent_class), 'class')
+    manager.start_class_scope(class_name, parent_class)
 
 # Regla que se encarga de crear el scope de la funcion
 def p_scope_function(p):
@@ -420,8 +458,10 @@ def p_scope_function(p):
 def p_scope_constructor(p):
     '''scope_constructor : empty
     '''
-    class_name = p[-2]
-    table.set_constructor(class_name, FunctionSymbol(class_name, p[-1]))
+    constructor_name = p[-2]
+    parameters =  p[-1]
+    # table.set_constructor(class_name, FunctionSymbol(class_name, p[-1]))
+    manager.add_constructor(constructor_name, parameters)
 
 def p_check_class(p):
     '''check_class : empty
@@ -443,7 +483,8 @@ def p_exp_evaluation(p):
 def p_after_if_block(p):
     '''after_if_block : empty
     '''
-    flow.if_else_after_if_block() 
+    # flow.if_else_after_if_block() 
+    manager.flow.if_else_after_if_block()
 
 def p_leave_breadcrumb(p):
     '''leave_breadcrumb : empty
