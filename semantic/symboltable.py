@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*- 
 from scope import Scope
-from variablesymbol import VariableSymbol
+from symbols import VariableSymbol
+
 class SymbolTable:
     root = 'global'
     current_scope = root
@@ -11,6 +10,16 @@ class SymbolTable:
     def __init__(self):
         self.table[self.root] = Scope(None, 'global', None) 
     
+    def store(self, id, symbol, scope_type):
+        '''
+        Creates a symbol from the given parser token
+        '''
+        self.table[self.current_scope].symbols[id] = symbol
+        if scope_type:
+            self.create_new_scope(id, scope_type, symbol)
+            if scope_type == 'function':
+                self.store_params(symbol)
+
     def lookup(self, name):
         '''Recibe el nombre del ID a buscar, regresa true si
            lo encontró en el scope actual de la semántica,
@@ -31,17 +40,13 @@ class SymbolTable:
             raise Exception('Value already exists')
         return False
 
-    def store(self, id, symbol, scope_type):
-        '''
-        Crea un símbolo apartir del token que es pasado por el parser.
-        '''
-        self.table[self.current_scope].symbols[id] = symbol
-        if scope_type:
-            self.create_new_scope(id, scope_type, symbol)
-            if scope_type == 'function':
-                self.store_params(symbol)
-
     def create_new_scope(self, name, scope_type, symbol):
+        '''
+        Creates a new scope based on the current scope
+        if the current scope is global, new scope could be a function or class
+        if the current scope is class, new scope would be classname_id 
+        Stores this new scope in the table of symbols 
+        '''
         current_scope = self.current_scope
         if self.currently_in_class():
             new_scope = current_scope + '_' + name

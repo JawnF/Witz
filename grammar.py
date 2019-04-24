@@ -439,7 +439,7 @@ def p_error(p):
 
 # Semantic actions 
 
-# Regla que se encarga de crear y abrir el scope de la clase
+# Rule in charge of creating and opening a new class scope
 def p_scope_class(p):
     '''scope_class : empty
     '''

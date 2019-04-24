@@ -6,5 +6,3 @@ class VariableSymbol:
     
     def is_class_instance(self):
         return not self.var_type in ['int','float','str','stack','bool']
-
-    

@@ -1,7 +1,7 @@
 from semantic.symboltable import SymbolTable
-from semantic.variablesymbol import VariableSymbol
-from semantic.classsymbol import ClassSymbol
-from semantic.functionsymbol import FunctionSymbol
+from semantic.symbols import VariableSymbol
+from semantic.symbols import ClassSymbol
+from semantic.symbols import FunctionSymbol
 from semantic.cube import SemanticCube
 from quads.temp import Temp
 from quads.quad_generator import QuadGenerator
@@ -10,6 +10,7 @@ from memory.memory import Memory
 
 class StatementManager:
     current_scope = ['global']
+    scope_name = ''
 
     # global, class, function, temporal
     def __init__(self):
@@ -18,6 +19,14 @@ class StatementManager:
         self.quads = QuadGenerator()
         self.flow = FlowManager(quads)
         self.memory = Memory()
+
+    def start_class_scope(self, class_name, parent_name):
+        # Store the class symbol in the symbol table
+        self.table.store(class_name, ClassSymbol(class_name, parent_name), 'class')
+        # Set the current scope to a class scope
+        self.current_scope.append('class')
+        # Set the name of the current scope
+        self.scope_name = class_name
 
     def declare(self, var_tuple):
         var_name = var_tuple[0]
@@ -33,15 +42,11 @@ class StatementManager:
     def instantiate(self, class_name, args):
         # Return temporal direction of instance
 
-
     def end_class_scope(self):
         # Doesn't return anything, it just ends the scope
         self.table.close_scope()
         self.current_scope.pop()
     
-    def start_class_scope(self, class_name, parent_name):
-        self.table.store(class_name, ClassSymbol(class_name, parent_name))
-        self.current_scope.append('class')
 
     def start_constructor_scope(self, constructor_name, parameters):
         self.table.set_constructor(constructor_name, FunctionSymbol(constructor_name, parameters))

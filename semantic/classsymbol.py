@@ -3,4 +3,3 @@ class ClassSymbol:
     is_callable = False
     def __init__(self, parent):
         self.parent = parent
-
