@@ -11,6 +11,7 @@ from memory.memory import Memory
 class StatementManager:
     current_scope = ['global']
 
+    # global, class, function, temporal
     def __init__(self):
         self.table = SymbolTable()
         self.oracle = SemanticCube()
@@ -29,19 +30,25 @@ class StatementManager:
             return address
         raise Exception('Variable '+var_name+' is already assigned')
 
-    def instantiate(self, class_name):
+    def instantiate(self, class_name, args):
         # Return temporal direction of instance
+
 
     def end_class_scope(self):
         # Doesn't return anything, it just ends the scope
+        self.table.close_scope()
+        self.current_scope.pop()
     
     def start_class_scope(self, class_name, parent_name):
+        self.table.store(class_name, ClassSymbol(class_name, parent_name))
         self.current_scope.append('class')
 
     def start_constructor_scope(self, constructor_name, parameters):
-        self.current_scope.append('class')
+        self.table.set_constructor(constructor_name, FunctionSymbol(constructor_name, parameters))
+        self.current_scope.append('function')
 
     def close_constructor_scope(self):
+        self.table.close_scope()
         self.current_scope.pop()
 
     def assign(self, value, var_address):

@@ -17,7 +17,7 @@ class LocalMemory:
 		pass
 
 	def create_function():
-		
+		self.stack[]
 
 	def get_next(self, type):
 		mem = {

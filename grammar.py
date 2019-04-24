@@ -172,7 +172,8 @@ def p_constructor_call(p):
     # var_type = p[-3][1]
     # table.check_new(constructor, var_type)
     class_name = p[1]
-    p[0] = (manager.instantiate(class_name), class_name)
+    args = p[3]
+    p[0] = (manager.instantiate(class_name), class_name, args)
 
 def p_prop(p):
     '''prop : THIS '.' ID
