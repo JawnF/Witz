@@ -5,10 +5,10 @@ import grammar
 
 for test in listdir('tests'):	
 	file = open('tests/'+test, 'r')
-	print "Running test "+test
+	print ("Running test "+test)
 	try:
 		grammar.parser.parse(file.read())
 	except Exception as e:
-		print ".."+str(e)
-	print ""
+		print (".."+str(e))
+	print ("")
 	file.close()

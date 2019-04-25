@@ -1,4 +1,4 @@
-from quad_generator import QuadGenerator
+from .quad_generator import QuadGenerator
 from quads.temp import Temp
 
 class FlowManager:

@@ -7,43 +7,98 @@ from quads.temp import Temp
 from quads.quad_generator import QuadGenerator
 from quads.flow_manager import FlowManager
 from memory.memory import Memory
+#   Python 
+import sys
+sys.tracebacklimit = 0
 
 class StatementManager:
     in_local_scope = False
 
-    # global, class, function, temporal
     def __init__(self):
         self.table = SymbolTable()
         self.oracle = SemanticCube()
         self.quads = QuadGenerator()
-        self.flow = FlowManager(quads)
+        self.flow = FlowManager(self.quads)
         self.memory = Memory()
+        # Creating the quad for the initial functions jump
+        self.create_initial_jump()
 
+    def create_initial_jump(self):
+        '''
+            Function that creates the initial jump where 
+            the main functions are being executed
+        '''
+        # We create a new GOTO quad
+        self.quads.generate('GOTO', 0, 0, 0, True)
+        # Current index quad is at 2, we store the previous quad by adding -1
+        self.quads.store_jump(-1)
+    
     def start_class_scope(self, class_name, parent_name):
-        # Store the class symbol in the symbol table
-        self.table.store(class_name, ClassSymbol(class_name, parent_name), 'class')
-        # Set the current scope to a class scope
-        self.current_scope.append('class')
+        '''
+        Function that starts a new class scope
+        '''
+        # We first have be sure that the class isn't already defined
+        class_exists = self.check_id_exists(class_name)
+        if not class_exists: 
+            # Fetching the current number index of the quad
+            quad_number = self.quads.current_index
+            # Checks if it has a parent, if it does then it copies every attribute and function from it
+            if parent_name:
+                self.table.store_with_parent_symbols(parent_name, class_name, ClassSymbol(parent_name, quad_number), 'class')
+            else:
+                # Store the class symbol in the symbol table
+                self.table.store(class_name, ClassSymbol(parent_name, quad_number), 'class')
+        else:
+            raise Exception('Class name already defined')
+
+    def check_class_exists(self, class_name):
+        '''
+        Function that checks if a class that is 
+        being inherited from exists, if it doesn't it throws
+        and exception
+        '''
+        class_exists = self.table.check_class(class_name)
+        if not class_exists:
+            raise Exception('Class doesn\'t exist')
+
+    def store_class_attributes(self, attributes):
+        '''
+        Function that will store the current class scope attributes in its
+        corresponding key at symbol table
+        '''
+        for attribute in attributes:
+            # Each attribute is stored in a tuple
+            attribute_name = attribute[0]
+            attribute_type = attribute[1]
+            # Check if attribute exists
+            attribute_exists = self.table.neg_lookup(attribute_name)
+            if not attribute_exists:
+                self.table.store(attribute_name, VariableSymbol(attribute_type), False)
+            else :
+                raise Exception('Attribute already exists')
 
     def declare(self, var_tuple):
         var_name = var_tuple[0]
         var_type = var_tuple[1]
-        variable_exists = table.lookup(var_name)
+        variable_exists = self.table.lookup(var_name)
         if not variable_exists:
-            table.store(var_name, VariableSymbol(var_type), False)
+            self.table.store(var_name, VariableSymbol(var_type), False)
             scope = self.current_scope[-1]
-            address = memory.get_address(scope, var_type)
+            address = self.memory.get_address(scope, var_type)
             return address
         raise Exception('Variable '+var_name+' is already assigned')
 
     def instantiate(self, class_name, args):
         # Return temporal direction of instance
+        x = 20
 
     def end_class_scope(self):
-        # Doesn't return anything, it just ends the scope
+        '''
+        Function that closes a class scope, by default it returns
+        a quad of type RETURN 
+        '''
         self.table.close_scope()
-        self.current_scope.pop()
-    
+        self.quads.generate('RETURN', None, None, None)
 
     def start_constructor_scope(self, constructor_name, parameters):
         self.table.set_constructor(constructor_name, FunctionSymbol(constructor_name, parameters))
@@ -55,52 +110,70 @@ class StatementManager:
 
     def assign(self, value, var_address):
         # check if exp is a tuple, check that it is the same type 
+        x = 20
     
     def this_property(self, var_id):
         # returns tuple with the address of the attribute and str of type
+        x = 20
     
     def var_property(self, var_id, property_id):
         # returns tuple with the address of the attribute and str of type
+        x = 20
 
     def id_property(self,property_id):
         # returns tuple with the address of the attribute and str of type
+        x = 20
 
     def print_output(self, expression):
+        x = 20
     
     def return_value(self, return_value):
+        x = 20
     
     def return_void(self):
+        x = 20
 
     def float_constant(self, value):
+        x = 20
 
     def int_constant(self, value):
+        x = 20
     
     def string_constant(self, value):
+        x = 20
 
     def free_temp_memory(self, memory_address):
+        x = 20
 
     def read(self):
         #Return temporal
+        x = 20
 
     def operate(self, operator, left_op, right_op):
         # liberar memoria temporal de left_op y right_op
+        x = 20
 
-    def check_variable_exists(self, variable):
+    def check_id_exists(self, id):
+        '''
+        Function that checks if an id exists
+        '''
+        return self.table.lookup(id)
 
     def check_call_validity(self, property_name, arguments):
+        x = 20
 
     def is_stack_type(self, variable):
+        x = 20
 
     def start_function_scope(self, function_name, return_type, parameters):
-    
-    def check_class_exists(self, class_name):
-        '''
-        Function that checks if a class that is 
-        being inherited from exists, if it doesn't it throws
-        and exception
-        '''
-        class_exists = self.table.check_class(class_name)
-        if not class_exists:
-            raise Exception('Class doesn\'t exist')
+        x = 20
     
     def id_does_not_exist(self, identifier):
+        x = 20
+
+    def create_quads_txt(self):
+        file = open("quads.txt","w+")
+        for quad in self.quads.quads:
+            file.write(str(quad)+'\n')
+        file.close()
+    

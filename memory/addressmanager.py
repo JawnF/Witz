@@ -76,6 +76,7 @@ class AddressManager:
     }
 
     def __init__(self):
+        self.hola_mundo = 'hola mundo'
         
     def get_next(self, type):
         self.dict_index[type] += 1
@@ -94,4 +95,5 @@ class AddressManager:
         if address < self.offset['temp_int'] or address > self.limits['temp_obj']:
             raise Exception ('Cannot free non-temporal memory')
         if self.is_temporal_object(address):
-            for add in self.
+            print('hola mundo')
+            #for add in self.

@@ -1,7 +1,7 @@
-from globalmemory import GlobalMemory
-from localmemory import LocalMemory
-from temporalmemory import TemporalMemory
-from constmemory import ConstMemory
+from .globalmemory import GlobalMemory
+from .localmemory import LocalMemory
+from .temporalmemory import TemporalMemory
+from .constmemory import ConstMemory
 
 class Memory:
     

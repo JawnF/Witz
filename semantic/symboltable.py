@@ -1,6 +1,7 @@
-from scope import Scope
-from symbols import VariableSymbol
-
+from .scope import Scope
+from .symbols import VariableSymbol
+#python
+import copy
 class SymbolTable:
     root = 'global'
     current_scope = root
@@ -20,6 +21,20 @@ class SymbolTable:
             if scope_type == 'function':
                 self.store_params(symbol)
 
+    def store_with_parent_symbols(self, parent, id, symbol, scope_type):
+        '''
+        Copies all the elements stored in a parent into a child
+        Used for class inheritance
+        '''
+        # Stores the element first
+        self.table[self.current_scope].symbols[id] = symbol
+        # Fetches the parent symbols
+        parent_symbols = self.table[parent].symbols
+        # Creates a new scope with the new class
+        self.create_new_scope(id, scope_type, symbol)
+        # Stores the parents attributes into the current class scope
+        self.table[self.current_scope].symbols = copy.deepcopy(parent_symbols)
+
     def lookup(self, name):
         '''Recibe el nombre del ID a buscar, regresa true si
            lo encontró en el scope actual de la semántica,
@@ -31,14 +46,16 @@ class SymbolTable:
         return exist
     
     def neg_lookup(self, name):
-        '''Recibe el nombre del ID a buscar, regresa false si
-           no lo encontró en el scope actual de la semántica,
+        '''
+        Receibes the name of the ID, returns false if the
+        value was not found in the current scope. 
+        Works for when wanting to create variables with the same name
         '''
         self.search_scope = self.current_scope
         exist = self.look_current_search_scope(name)
-        if exist:
-            raise Exception('Value already exists')
-        return False
+        # if exist:
+        #     raise Exception('Value already exists')
+        return exist
 
     def create_new_scope(self, name, scope_type, symbol):
         '''
@@ -178,3 +195,5 @@ class SymbolTable:
     def check_variable_symbol(self, sym):
         if not isinstance(sym, VariableSymbol):
             raise Exception('Cannot assign value to non-variable symbol')
+    
+        

@@ -7,6 +7,7 @@ manager = StatementManager()
 def p_program(p):
     '''program : classes functions statements
     '''
+    manager.create_quads_txt()
 
 # def p_vars(p):
 #     '''vars : var_declaration vars
@@ -65,7 +66,7 @@ def p_classes(p):
     '''
 
 def p_class(p):
-    '''class : '@' ID inheritance class_attribute scope_class class_block
+    '''class : '@' ID inheritance class_attribute scope_class store_attributes class_block
     '''
     # table.close_scope()
     manager.end_class_scope()
@@ -80,19 +81,14 @@ def p_inheritance(p):
         p[0] = None
     
 def p_class_block(p):
-    '''class_block : '{' class_statements functions '}'
-    '''
-
-def p_class_statements(p):
-    '''class_statements : statement 
-                        | empty
+    '''class_block : '{' functions '}'
     '''
     pass
 
 def p_class_attribute(p):
     '''class_attribute : '(' attrs ')'
-                       | empty
     '''
+    p[0] = p[2]
 
 def p_functions(p):
     '''functions : function functions
@@ -333,7 +329,7 @@ def p_id(p):
     '''
     # symbol = table.check_variable(p[1])
     # p[0] = (p[1], symbol.var_type)
-    p[0] = manager.check_variable_exists(p[1])
+    p[0] = manager.check_id_exists(p[1])
 
 def p_math_or(p):
     '''math_or : math_and math_or_alt
@@ -438,8 +434,8 @@ def p_error(p):
 def p_scope_class(p):
     '''scope_class : empty
     '''
-    class_name = p[-2]
-    parent_class = p[-1]
+    class_name = p[-3]
+    parent_class = p[-2]
     # table.store(class_name, ClassSymbol(parent_class), 'class')
     manager.start_class_scope(class_name, parent_class)
 
@@ -472,6 +468,13 @@ def p_neg_lookup(p):
     '''
     # table.local_neg_lookup(p[-1])
     manager.id_does_not_exist(p[-1])
+
+# Rule in charge of storing the attributes of the class
+def p_store_attributes(p):
+    '''store_attributes : empty
+    '''
+    manager.store_class_attributes(p[-2])
+
 
 # Flow controls
 

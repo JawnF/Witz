@@ -1,5 +1,5 @@
-from quad import Quad
-from temp import Temp
+from .quad import Quad
+from .temp import Temp
 from memory.addressmanager import AddressManager
 
 class QuadGenerator:
@@ -31,9 +31,3 @@ class QuadGenerator:
     def operator_to_number(self, operator):
         return self.operators.index(operator)
     
-    def create_txt(self):
-        file = open("quads.txt","w+")
-        for quad in self.quads:
-            file.write(str(quad)+'\n')
-        file.close()
-            

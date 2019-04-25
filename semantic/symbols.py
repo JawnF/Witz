@@ -18,12 +18,11 @@ class VariableSymbol:
 class ClassSymbol:
     symbol_type = 'class'
     is_callable = False
-    def __init__(self, parent, quad_number, constructor = None):
+    def __init__(self, parent, quad_number):
         '''
         Parent: Name of parent it inherits from -if-
         Quad number: Number of quad where the class starts
         '''
         self.parent = parent
         self.quad_number = quad_number
-        self.constructor = constructor
     
