@@ -1,21 +1,20 @@
 import ply.yacc as yacc
 from lexicon import tokens
-
 from manager import StatementManager
 manager = StatementManager()
 
 # Grammar for the general structure of the program
 def p_program(p):
-    '''program : classes functions vars statements
+    '''program : classes functions statements
     '''
 
 # def p_vars(p):
-#     '''vars : var vars
+#     '''vars : var_declaration vars
 #             | empty
 #     '''
 
-# def p_var(p):
-#     '''var : '$' attr init ';'
+# def p_var_declaration(p):
+#     '''var_declaration : '$' attr init ';'
 #     '''
 #     symbol = p[2]
 #     if symbol[1] == 'stack' and p[3]:
@@ -44,17 +43,6 @@ def p_var(p):
     '''
     p[0] = p[1]
 
-# def p_init(p):
-#     '''init : '=' exp
-#             | '=' NEW constructor_call
-#             | empty
-    # '''
-    # p[0] = False
- 
-# p[0] = manager.   if len(p) == 3:
-#         oracle.can_assign(p[-1][1], p[2][1])
-#         p[0] = p[2]
-
 def p_type(p):
     '''type : INT_TYPE
             | FLOAT_TYPE
@@ -77,7 +65,7 @@ def p_classes(p):
     '''
 
 def p_class(p):
-    '''class : '@' ID inheritance scope_class class_block
+    '''class : '@' ID inheritance class_attribute scope_class class_block
     '''
     # table.close_scope()
     manager.end_class_scope()
@@ -92,16 +80,19 @@ def p_inheritance(p):
         p[0] = None
     
 def p_class_block(p):
-    '''class_block : '{' vars constructor functions '}'
-    '''    
-    
-def p_constructor(p):
-    '''constructor : '~' ID params scope_constructor func_block
-                   | empty
+    '''class_block : '{' class_statements functions '}'
     '''
-    if len(p) > 2 :
-        # table.close_scope()
-        manager.close_constructor_scope()
+
+def p_class_statements(p):
+    '''class_statements : statement 
+                        | empty
+    '''
+    pass
+
+def p_class_attribute(p):
+    '''class_attribute : '(' attrs ')'
+                       | empty
+    '''
 
 def p_functions(p):
     '''functions : function functions
@@ -164,6 +155,10 @@ def p_assign(p):
     # quads.generate(p[2], p[3], None, p[1])
     # p[0] = p[3]
     p[0] = manager.assign(value, var)
+
+def p_init(p):
+    '''init : 
+    '''
 
 def p_constructor_call(p):
     '''constructor_call : ID '(' args ')'

@@ -69,9 +69,12 @@ class SymbolTable:
         self.current_scope = self.scope().parent
 
     def check_class(self, class_name):
+        '''
+        Function that returns whether a class exists in the
+        symbol table or not
+        '''
         exists = self.table[self.root].symbols.get(class_name)
-        if not exists:
-            raise Exception('Class doesn\'t exist')
+        return exists
     
     def set_constructor(self, name, symbol):
         if name == self.current_scope:

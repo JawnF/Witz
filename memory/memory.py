@@ -17,6 +17,7 @@ class Memory:
         	'local' : self.locals,
         	'temp' : self.temps,
         	'const' : self.consts,
+            'instance' : self.intances
         }.get(scope)
         return directory.get_next(type)
 

@@ -9,8 +9,7 @@ from quads.flow_manager import FlowManager
 from memory.memory import Memory
 
 class StatementManager:
-    current_scope = ['global']
-    scope_name = ''
+    in_local_scope = False
 
     # global, class, function, temporal
     def __init__(self):
@@ -25,8 +24,6 @@ class StatementManager:
         self.table.store(class_name, ClassSymbol(class_name, parent_name), 'class')
         # Set the current scope to a class scope
         self.current_scope.append('class')
-        # Set the name of the current scope
-        self.scope_name = class_name
 
     def declare(self, var_tuple):
         var_name = var_tuple[0]
@@ -97,5 +94,13 @@ class StatementManager:
     def start_function_scope(self, function_name, return_type, parameters):
     
     def check_class_exists(self, class_name):
+        '''
+        Function that checks if a class that is 
+        being inherited from exists, if it doesn't it throws
+        and exception
+        '''
+        class_exists = self.table.check_class(class_name)
+        if not class_exists:
+            raise Exception('Class doesn\'t exist')
     
     def id_does_not_exist(self, identifier):

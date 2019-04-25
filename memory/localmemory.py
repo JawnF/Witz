@@ -11,13 +11,29 @@ class LocalMemory:
 	strs 	= {start: 301,		end: 400}
 	objs 	= {start: 401, 		end: 500}
 
+	top = -1
+	last = -2
+	current = top
 	stack = []
 
 	def __init__(self):
 		pass
 
 	def create_function():
-		self.stack[]
+		self.stack.append({
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		})
+		self.current = self.last
+	
+	def enter_function():
+		self.current = self.top
+
+	def end_function():
+		self.stack.pop()
 
 	def get_next(self, type):
 		mem = {

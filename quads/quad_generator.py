@@ -9,7 +9,7 @@ class QuadGenerator:
     operators = ['+','=','-','*','/', 'GOTO', 'GOTOF', 'GOTOV',
                  'PRINT', 'READ', 'OR', 'AND', 'CONST', 'ATTR',
                  'RETURN', 'VAR', 'ENDCLASS', 'INHERIT', 'ENDATTR',
-                 'INSTANCE', 'ASSIGN']
+                 'INSTANCE', 'ASSIGN', 'FUNC']
 
     def generate(self, operator, left, right, target_address, pending = False):
         operator_type = self.operator_to_number(operator)
