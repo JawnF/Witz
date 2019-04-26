@@ -120,20 +120,24 @@ class SymbolTable:
     
     def check_class_scope(self):
         self.set_search_scope()
-        self.search_class_scope()
+        return self.search_class_scope()
     
     def search_class_scope(self):
+        '''
+            Function that checks if the current scope is inside a class
+            If it is inside a function, it checks its parent class
+        '''
         if self.search_scope == self.root:
-            raise Exception('Not in a class scope')
+            return False
         elif self.table[self.search_scope].type == 'class':
             return True
         self.search_scope = self.scope().parent
-        self.search_class_scope()
+        return self.search_class_scope()
     
     def check_class_property(self, name):
         current_class = self.current_class()
         if not current_class or not name in current_class.symbols:
-            raise Exception('Property does not exist.')
+            return False
         else:
             return current_class.symbols
 
@@ -151,10 +155,11 @@ class SymbolTable:
     def check_variable(self, name):
         self.set_search_scope()
         while self.search_scope:
-            exist = self.table[self.search_scope].symbols[name]
+            exist = name in self.table[self.search_scope].symbols
             if exist and exist.symbol_type == 'variable':
-                return exist
+                return self.table[self.search_scope].symbols[name]
             self.search_scope = self.table[self.search_scope].parent
+            return False
 
     def has_property(self, symbol, name):
         if not symbol.is_class_instance():
@@ -168,7 +173,8 @@ class SymbolTable:
     def check_property(self, name):
         value = self.lookup(name)
         if value.symbol_type == 'class':
-            raise Exception('Invalid use of class '+name)
+            #raise Exception('Invalid use of class '+name)
+            return False
         else:
             return value
 

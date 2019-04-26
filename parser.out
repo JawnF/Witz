@@ -106,13 +106,12 @@ Rule 100   stack_method -> PEEK ( )
 Rule 101   empty -> <empty>
 Rule 102   scope_class -> empty
 Rule 103   scope_function -> empty
-Rule 104   scope_constructor -> empty
-Rule 105   check_class -> empty
-Rule 106   neg_lookup -> empty
-Rule 107   store_attributes -> empty
-Rule 108   exp_evaluation -> empty
-Rule 109   after_if_block -> empty
-Rule 110   leave_breadcrumb -> empty
+Rule 104   check_class -> empty
+Rule 105   neg_lookup -> empty
+Rule 106   store_attributes -> empty
+Rule 107   exp_evaluation -> empty
+Rule 108   after_if_block -> empty
+Rule 109   leave_breadcrumb -> empty
 
 Terminals, with rules where they appear
 
@@ -185,7 +184,7 @@ classes              : 1 15
 comparison_op        : 83
 constructor_call     : 3
 declaration          : 6
-empty                : 16 19 23 27 29 32 50 52 65 69 70 78 81 84 94 96 102 103 104 105 106 107 108 109 110
+empty                : 16 19 23 27 29 32 50 52 65 69 70 78 81 84 94 96 102 103 104 105 106 107 108 109
 exp                  : 38 44 45 46 48 49 54 93 95
 exp_evaluation       : 44 45 46
 expr                 : 37
@@ -219,7 +218,6 @@ read                 : 55
 return               : 30
 return_type          : 24
 scope_class          : 17
-scope_constructor    : 
 scope_function       : 24
 stack_call           : 92
 stack_method         : 97
@@ -1242,7 +1240,7 @@ state 51
 state 52
 
     (24) function -> # ID . neg_lookup : return_type params scope_function func_block
-    (106) neg_lookup -> . empty
+    (105) neg_lookup -> . empty
     (101) empty -> .
 
     :               reduce using rule 101 (empty -> .)
@@ -1411,7 +1409,7 @@ state 61
 state 62
 
     (46) while_block -> WHILE ( . leave_breadcrumb exp exp_evaluation ) block
-    (110) leave_breadcrumb -> . empty
+    (109) leave_breadcrumb -> . empty
     (101) empty -> .
 
     READ            reduce using rule 101 (empty -> .)
@@ -2151,9 +2149,9 @@ state 98
 
 state 99
 
-    (106) neg_lookup -> empty .
+    (105) neg_lookup -> empty .
 
-    :               reduce using rule 106 (neg_lookup -> empty .)
+    :               reduce using rule 105 (neg_lookup -> empty .)
 
 
 state 100
@@ -2185,7 +2183,7 @@ state 101
 state 102
 
     (18) inheritance -> < ID . check_class >
-    (105) check_class -> . empty
+    (104) check_class -> . empty
     (101) empty -> .
 
     >               reduce using rule 101 (empty -> .)
@@ -2197,7 +2195,7 @@ state 103
 
     (44) if_block -> IF ( exp . exp_evaluation ) block
     (45) if_block -> IF ( exp . exp_evaluation ) block after_if_block ELSE block
-    (108) exp_evaluation -> . empty
+    (107) exp_evaluation -> . empty
     (101) empty -> .
 
     )               reduce using rule 101 (empty -> .)
@@ -2291,17 +2289,17 @@ state 105
 
 state 106
 
-    (110) leave_breadcrumb -> empty .
+    (109) leave_breadcrumb -> empty .
 
-    READ            reduce using rule 110 (leave_breadcrumb -> empty .)
-    STRING          reduce using rule 110 (leave_breadcrumb -> empty .)
-    NEW             reduce using rule 110 (leave_breadcrumb -> empty .)
-    THIS            reduce using rule 110 (leave_breadcrumb -> empty .)
-    ID              reduce using rule 110 (leave_breadcrumb -> empty .)
-    $               reduce using rule 110 (leave_breadcrumb -> empty .)
-    (               reduce using rule 110 (leave_breadcrumb -> empty .)
-    FLOAT           reduce using rule 110 (leave_breadcrumb -> empty .)
-    INT             reduce using rule 110 (leave_breadcrumb -> empty .)
+    READ            reduce using rule 109 (leave_breadcrumb -> empty .)
+    STRING          reduce using rule 109 (leave_breadcrumb -> empty .)
+    NEW             reduce using rule 109 (leave_breadcrumb -> empty .)
+    THIS            reduce using rule 109 (leave_breadcrumb -> empty .)
+    ID              reduce using rule 109 (leave_breadcrumb -> empty .)
+    $               reduce using rule 109 (leave_breadcrumb -> empty .)
+    (               reduce using rule 109 (leave_breadcrumb -> empty .)
+    FLOAT           reduce using rule 109 (leave_breadcrumb -> empty .)
+    INT             reduce using rule 109 (leave_breadcrumb -> empty .)
 
 
 state 107
@@ -2679,7 +2677,7 @@ state 129
 state 130
 
     (17) class -> @ ID inheritance class_attribute scope_class . store_attributes class_block
-    (107) store_attributes -> . empty
+    (106) store_attributes -> . empty
     (101) empty -> .
 
     {               reduce using rule 101 (empty -> .)
@@ -2730,13 +2728,13 @@ state 135
 
 state 136
 
-    (105) check_class -> empty .
+    (104) check_class -> empty .
 
-    >               reduce using rule 105 (check_class -> empty .)
-    =               reduce using rule 105 (check_class -> empty .)
-    ,               reduce using rule 105 (check_class -> empty .)
-    )               reduce using rule 105 (check_class -> empty .)
-    (               reduce using rule 105 (check_class -> empty .)
+    >               reduce using rule 104 (check_class -> empty .)
+    =               reduce using rule 104 (check_class -> empty .)
+    ,               reduce using rule 104 (check_class -> empty .)
+    )               reduce using rule 104 (check_class -> empty .)
+    (               reduce using rule 104 (check_class -> empty .)
 
 
 state 137
@@ -2749,15 +2747,15 @@ state 137
 
 state 138
 
-    (108) exp_evaluation -> empty .
+    (107) exp_evaluation -> empty .
 
-    )               reduce using rule 108 (exp_evaluation -> empty .)
+    )               reduce using rule 107 (exp_evaluation -> empty .)
 
 
 state 139
 
     (46) while_block -> WHILE ( leave_breadcrumb exp . exp_evaluation ) block
-    (108) exp_evaluation -> . empty
+    (107) exp_evaluation -> . empty
     (101) empty -> .
 
     )               reduce using rule 101 (empty -> .)
@@ -2973,7 +2971,7 @@ state 153
 state 154
 
     (12) type -> ID . check_class
-    (105) check_class -> . empty
+    (104) check_class -> . empty
     (101) empty -> .
 
     =               reduce using rule 101 (empty -> .)
@@ -3181,9 +3179,9 @@ state 168
 
 state 169
 
-    (107) store_attributes -> empty .
+    (106) store_attributes -> empty .
 
-    {               reduce using rule 107 (store_attributes -> empty .)
+    {               reduce using rule 106 (store_attributes -> empty .)
 
 
 state 170
@@ -3532,7 +3530,7 @@ state 197
 
     (44) if_block -> IF ( exp exp_evaluation ) block .
     (45) if_block -> IF ( exp exp_evaluation ) block . after_if_block ELSE block
-    (109) after_if_block -> . empty
+    (108) after_if_block -> . empty
     (101) empty -> .
 
     IF              reduce using rule 44 (if_block -> IF ( exp exp_evaluation ) block .)
@@ -3738,9 +3736,9 @@ state 208
 
 state 209
 
-    (109) after_if_block -> empty .
+    (108) after_if_block -> empty .
 
-    ELSE            reduce using rule 109 (after_if_block -> empty .)
+    ELSE            reduce using rule 108 (after_if_block -> empty .)
 
 
 state 210

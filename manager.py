@@ -9,7 +9,7 @@ from quads.flow_manager import FlowManager
 from memory.memory import Memory
 #   Python 
 import sys
-sys.tracebacklimit = 0
+#sys.tracebacklimit = 0
 
 class StatementManager:
     in_local_scope = False
@@ -77,6 +77,17 @@ class StatementManager:
             else :
                 raise Exception('Attribute already exists')
 
+    def start_function_scope(self, function_name, return_type, parameters):
+        # Stores the function element
+        self.table.store(function_name, FunctionSymbol(return_type, parameters), 'function')
+    
+    def close_function_scope(self):
+        '''
+        Function that closes a function scope
+        '''
+        self.table.close_scope()
+        self.quads.generate('RETURN', None, None, None)
+
     def declare(self, var_tuple):
         var_name = var_tuple[0]
         var_type = var_tuple[1]
@@ -100,29 +111,47 @@ class StatementManager:
         self.table.close_scope()
         self.quads.generate('RETURN', None, None, None)
 
-    def start_constructor_scope(self, constructor_name, parameters):
-        self.table.set_constructor(constructor_name, FunctionSymbol(constructor_name, parameters))
-        self.current_scope.append('function')
-
-    def close_constructor_scope(self):
-        self.table.close_scope()
-        self.current_scope.pop()
-
     def assign(self, value, var_address):
         # check if exp is a tuple, check that it is the same type 
         x = 20
     
-    def this_property(self, var_id):
+    def this_property(self, prop_id):
+        '''
+        Function that handles the this.property functionallity
+        '''
         # returns tuple with the address of the attribute and str of type
-        x = 20
-    
+        # First we check if user is in a class scope
+        in_class_scope = self.table.check_class_scope()
+        # We are in a class scope
+        if in_class_scope:
+            class_has_property = self.table.check_class_property(prop_id)
+            if class_has_property:
+                #Do something
+                x = 20
+            else:
+                raise Exception('Property does not exist')
+        # If we are not inside a class scope, then the keyword this is not available
+        else:
+            raise Exception('Keyword this is not available outside a class scope')
+            
     def var_property(self, var_id, property_id):
+        '''
+        Function that handles the id.id functionallity
+        '''
         # returns tuple with the address of the attribute and str of type
-        x = 20
+        variable_exists = self.table.check_variable(var_id)
+        if variable_exists:
+            self.table.has_property(var_id, property_id)
+        else:
+            raise Exception('Variable '+ var_id + ' is not defined.')
 
     def id_property(self,property_id):
         # returns tuple with the address of the attribute and str of type
-        x = 20
+        class_property = self.table.check_property(property_id)
+        if class_property:
+            x = 20
+        else:
+            raise Exception('Invalid use of name '+property_id)
 
     def print_output(self, expression):
         x = 20
@@ -165,11 +194,10 @@ class StatementManager:
     def is_stack_type(self, variable):
         x = 20
 
-    def start_function_scope(self, function_name, return_type, parameters):
-        x = 20
-    
     def id_does_not_exist(self, identifier):
-        x = 20
+        id_exist = self.table.lookup(identifier)
+        if id_exist:
+            raise Exception('Identifier '+identifier + ' already exists')
 
     def create_quads_txt(self):
         file = open("quads.txt","w+")

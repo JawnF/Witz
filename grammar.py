@@ -83,7 +83,6 @@ def p_inheritance(p):
 def p_class_block(p):
     '''class_block : '{' functions '}'
     '''
-    pass
 
 def p_class_attribute(p):
     '''class_attribute : '(' attrs ')'
@@ -98,7 +97,6 @@ def p_functions(p):
 def p_function(p):
     '''function : '#' ID neg_lookup ':' return_type params scope_function func_block
     '''
-    # table.close_scope()
     manager.close_function_scope()
 
 def p_params(p):
@@ -172,9 +170,7 @@ def p_prop(p):
             | ID
     '''
     if p[1] == 'this':
-        # primera regla
-        # table.check_class_scope()
-        # p[0] = table.check_class_property(p[3])
+        # First rule
         prop_id = p[3]
         p[0] = manager.this_property(prop_id)
     elif len(p) == 4:
@@ -197,13 +193,11 @@ def p_if_block(p):
     # flow.if_after_block()
     manager.flow.if_after_block()
 
-
 def p_while_block(p):
     '''while_block : WHILE '(' leave_breadcrumb exp exp_evaluation ')' block
     '''
     manager.flow.while_after_block()
 
-    
 def p_for_block(p):
     '''for_block : FOR number FOR_TO number SKIP number block
     '''
@@ -439,7 +433,7 @@ def p_scope_class(p):
     # table.store(class_name, ClassSymbol(parent_class), 'class')
     manager.start_class_scope(class_name, parent_class)
 
-# Regla que se encarga de crear el scope de la funcion
+# Rule in charge of creating a new function scope
 def p_scope_function(p):
     '''scope_function : empty
     '''
@@ -448,14 +442,6 @@ def p_scope_function(p):
     params = p[-1]
     # table.store(function_name, FunctionSymbol(return_type, params),'function')
     manager.start_function_scope(function_name, return_type, params)
-
-def p_scope_constructor(p):
-    '''scope_constructor : empty
-    '''
-    constructor_name = p[-2]
-    parameters =  p[-1]
-    # table.set_constructor(class_name, FunctionSymbol(class_name, p[-1]))
-    manager.start_constructor_scope(constructor_name, parameters)
 
 def p_check_class(p):
     '''check_class : empty
