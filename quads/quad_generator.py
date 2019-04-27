@@ -1,6 +1,5 @@
 from .quad import Quad
 from .temp import Temp
-from memory.addressmanager import AddressManager
 
 class QuadGenerator:
     quads = {}

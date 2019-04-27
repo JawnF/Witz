@@ -9,7 +9,7 @@ from quads.flow_manager import FlowManager
 from memory.memory import Memory
 #   Python 
 import sys
-#sys.tracebacklimit = 0
+sys.tracebacklimit = 0
 
 class StatementManager:
     in_local_scope = False
@@ -114,7 +114,7 @@ class StatementManager:
     def assign(self, value, var_address):
         # check if exp is a tuple, check that it is the same type 
         x = 20
-    
+                        
     def this_property(self, prop_id):
         '''
         Function that handles the this.property functionallity
@@ -126,10 +126,10 @@ class StatementManager:
         if in_class_scope:
             class_has_property = self.table.check_class_property(prop_id)
             if class_has_property:
-                #Do something
-                x = 20
+                # Returns the symbol
+                return class_has_property
             else:
-                raise Exception('Property does not exist')
+                raise Exception('Property '+prop_id+' does not exist in class '+in_class_scope+'.')
         # If we are not inside a class scope, then the keyword this is not available
         else:
             raise Exception('Keyword this is not available outside a class scope')
@@ -138,36 +138,48 @@ class StatementManager:
         '''
         Function that handles the id.id functionallity
         '''
-        # returns tuple with the address of the attribute and str of type
-        variable_exists = self.table.check_variable(var_id)
+        variable_exists = self.id_property(var_id)
+        if isinstance(variable_exists, FunctionSymbol):
+            raise Exception('Cannot access property of function '+var_id+'.'
         if variable_exists:
-            self.table.has_property(var_id, property_id)
-        else:
-            raise Exception('Variable '+ var_id + ' is not defined.')
+            symbol = variable_exists.get_attribute(property_id)
+            if not symbol:
+                raise Exception('Variable '+var_id+' does not have attribute '+property_id+'.')
+            return symbol
 
     def id_property(self,property_id):
-        # returns tuple with the address of the attribute and str of type
         class_property = self.table.check_property(property_id)
         if class_property:
-            x = 20
+            return class_property
         else:
-            raise Exception('Invalid use of name '+property_id)
+            raise Exception('Variable '+property_id+' is not defined.')
 
     def print_output(self, expression):
         x = 20
     
     def return_value(self, return_value):
-        x = 20
+        # Validates that the return object is the same type as the function return type
+        has_correct_return = self.table.check_return(return_value)
+        if has_correct_return:
+            x = 20
+        else:
+            # TODO verify Exception message
+            raise Exception('Cannot return '+return_value+' in function of type '+self.table.scope().symbol.return_type) 
     
     def return_void(self):
+        self.table.check_return('void')
+        
         x = 20
 
     def float_constant(self, value):
-        x = 20
+        address = self.memory.get_constant_address('float', value)
+        # TODO check if tuple is needed
+        return address
 
     def int_constant(self, value):
-        x = 20
-    
+        address = self.memory.get_constant_address('int', value)
+        return address
+                        
     def string_constant(self, value):
         x = 20
 
@@ -180,7 +192,7 @@ class StatementManager:
 
     def operate(self, operator, left_op, right_op):
         # liberar memoria temporal de left_op y right_op
-        x = 20
+        self.oracle.is_valid(operator, left_op, right_op)
 
     def check_id_exists(self, id):
         '''

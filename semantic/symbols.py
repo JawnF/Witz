@@ -9,11 +9,20 @@ class FunctionSymbol:
 class VariableSymbol:
     symbol_type = 'variable'
     is_callable = False
-    def __init__(self, var_type):
+    
+    def __init__(self, var_type, attrs = None):
         self.var_type = var_type
+        self.attrs = attrs
     
     def is_class_instance(self):
         return not self.var_type in ['int','float','str','stack','bool']
+
+    def get_attribute(self, name):
+        if not self.attrs:
+            return False
+        if not name in self.attrs:
+            return False
+        return self.attrs[name]
 
 class ClassSymbol:
     symbol_type = 'class'

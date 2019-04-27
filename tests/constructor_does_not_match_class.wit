@@ -1,3 +1,0 @@
-@dog {}
-
-$fito:dog = new cat();

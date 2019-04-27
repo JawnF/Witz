@@ -10,7 +10,7 @@ class SymbolTable:
 
     def __init__(self):
         self.table[self.root] = Scope(None, 'global', None) 
-    
+                        
     def store(self, id, symbol, scope_type):
         '''
         Creates a symbol from the given parser token
@@ -37,9 +37,8 @@ class SymbolTable:
 
     def lookup(self, name):
         '''Recibe el nombre del ID a buscar, regresa true si
-           lo encontró en el scope actual de la semántica,
+        lo encontro en el scope actual de la semantica,
         '''
-        self.set_search_scope()
         exist = self.look_current_search_scope(name)
         # if not exist:
         #     raise Exception('Value doesn\'t exist')
@@ -82,6 +81,9 @@ class SymbolTable:
     def scope(self):
         return self.table[self.current_scope]
 
+    def s_scope(self):
+        return self.table[self.search_scope]
+
     def close_scope(self):
         self.current_scope = self.scope().parent
 
@@ -102,8 +104,8 @@ class SymbolTable:
     def look_current_search_scope(self, name):
         self.set_search_scope()
         while self.search_scope:
-            if name in self.table[self.search_scope].symbols:
-                return self.table[self.search_scope].symbols[name]
+            if name in self.s_scope().symbols:
+                return self.s_scope().symbols[name]
             if self.search_scope == 'global':
                 return False
             self.search_scope = self.scope().parent
@@ -117,11 +119,11 @@ class SymbolTable:
         if not constructor == var_type:
             raise Exception('Constructor doesn\'t match variable type')
         return True
-    
+                        
     def check_class_scope(self):
         self.set_search_scope()
         return self.search_class_scope()
-    
+                        
     def search_class_scope(self):
         '''
             Function that checks if the current scope is inside a class
@@ -129,8 +131,8 @@ class SymbolTable:
         '''
         if self.search_scope == self.root:
             return False
-        elif self.table[self.search_scope].type == 'class':
-            return True
+        elif self.s_scope().type == 'class':
+            return self.search_scope
         self.search_scope = self.scope().parent
         return self.search_class_scope()
     
@@ -139,14 +141,14 @@ class SymbolTable:
         if not current_class or not name in current_class.symbols:
             return False
         else:
-            return current_class.symbols
+            return current_class.symbols[name]
 
     def current_class(self):
         self.set_search_scope()
         while self.search_scope:
-            if self.table[self.search_scope].type == 'class':
-                return self.table[self.search_scope]
-            self.search_scope = self.table[self.search_scope].parent  
+            if self.s_scope().type == 'class':
+                return self.s_scope()
+            self.search_scope = self.s_scope().parent  
         return False
 
     def set_search_scope(self):
@@ -155,10 +157,10 @@ class SymbolTable:
     def check_variable(self, name):
         self.set_search_scope()
         while self.search_scope:
-            exist = name in self.table[self.search_scope].symbols
+            exist = name in self.s_scope().symbols
             if exist and exist.symbol_type == 'variable':
-                return self.table[self.search_scope].symbols[name]
-            self.search_scope = self.table[self.search_scope].parent
+                return self.s_scope().symbols[name]
+            self.search_scope = self.s_scope().parent
             return False
 
     def has_property(self, symbol, name):
@@ -179,8 +181,13 @@ class SymbolTable:
             return value
 
     def check_return(self, ret_type):
+        '''
+            Function that checks that the current's scope return 
+            type is the same as the one that is being passed
+        '''
         if self.scope().symbol.return_type != ret_type:
-            raise Exception('Cannot return '+ret_type+' in function of type '+self.scope().symbol.return_type) 
+            return False
+        return True
 
     def check_stack(self, name):
         var_type = self.get_type(name)
@@ -201,5 +208,5 @@ class SymbolTable:
     def check_variable_symbol(self, sym):
         if not isinstance(sym, VariableSymbol):
             raise Exception('Cannot assign value to non-variable symbol')
-    
         
+            

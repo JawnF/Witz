@@ -1,1 +1,5 @@
-#fun:int(){}
+@dog(foo:str) {
+    #bark:void(){
+        foo = "hello world";
+    }
+}
