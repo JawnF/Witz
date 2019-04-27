@@ -2,14 +2,16 @@ from semantic.symboltable import SymbolTable
 from semantic.symbols import VariableSymbol
 from semantic.symbols import ClassSymbol
 from semantic.symbols import FunctionSymbol
+from semantic.symbols import StackSymbol
 from semantic.cube import SemanticCube
 from quads.temp import Temp
 from quads.quad_generator import QuadGenerator
 from quads.flow_manager import FlowManager
 from memory.memory import Memory
+from quads.opids import OpIds
 #   Python 
 import sys
-sys.tracebacklimit = 0
+#sys.tracebacklimit = 0
 
 class StatementManager:
     in_local_scope = False
@@ -101,7 +103,19 @@ class StatementManager:
 
     def instantiate(self, class_name, args):
         # Return temporal direction of instance
-        x = 20
+        class_symbol = self.table.check_class(class_name)
+        class_scope = self.table.table[class_name]
+        class_attributes = [(name,symbol) for name, symbol in class_scope.symbols if ininstance(symbol, VariableSymbol)]
+        symbol_attributes = {}
+        for (name,symbol) in class_attributes:
+            symbol_attributes[name] = (symbol.address, self.memory.get_address('instance', attr.type))
+        argument_types = list(map(lambda x: x[1], args))
+        accepts = class_symbol.accepts_arguments(argument_types)
+        if not accepts:
+            raise Exception('Arguments do not match constructor')
+        new_address = self.memory.get_address('temp', 'obj')
+        symbol = VariableSymbol(new_address, class_name, symbol_attributes)
+        return symbol.to_tuple()
 
     def end_class_scope(self):
         '''
@@ -109,11 +123,15 @@ class StatementManager:
         a quad of type RETURN 
         '''
         self.table.close_scope()
-        self.quads.generate('RETURN', None, None, None)
+        self.quads.generate('RETURN', 0, 0, 0)
 
-    def assign(self, value, var_address):
-        # check if exp is a tuple, check that it is the same type 
-        x = 20
+    def assign(self, variable, value):
+        if len(value) == 3 and isinstance(value[3], VariableSymbol):
+            value[3].address = variable[0]
+            self.table.replace(variable[3], value[3])
+        self.oracle.is_valid(variable[1], value[1])
+        self.quads.generate(OpIds.assign, value[0], 0, variable[0])
+        return variable
                         
     def this_property(self, prop_id):
         '''
@@ -126,6 +144,9 @@ class StatementManager:
         if in_class_scope:
             class_has_property = self.table.check_class_property(prop_id)
             if class_has_property:
+                if isinstance(class_has_property, StackSymbol):
+                    raise Exception('Cannot use stack '+prop_id+' outside a stack call.')
+                
                 # Returns the symbol
                 return class_has_property
             else:
@@ -140,17 +161,19 @@ class StatementManager:
         '''
         variable_exists = self.id_property(var_id)
         if isinstance(variable_exists, FunctionSymbol):
-            raise Exception('Cannot access property of function '+var_id+'.'
+            raise Exception('Cannot access property of function '+var_id+'.')
         if variable_exists:
             symbol = variable_exists.get_attribute(property_id)
             if not symbol:
                 raise Exception('Variable '+var_id+' does not have attribute '+property_id+'.')
-            return symbol
+            return symbol.to_tuple()
 
     def id_property(self,property_id):
         class_property = self.table.check_property(property_id)
+        if isinstance(class_property, StackSymbol):
+            raise Exception('Cannot use stack '+property_id+' outside a stack call.')
         if class_property:
-            return class_property
+            return class_property.to_tuple()
         else:
             raise Exception('Variable '+property_id+' is not defined.')
 
@@ -181,18 +204,26 @@ class StatementManager:
         return address
                         
     def string_constant(self, value):
-        x = 20
+        address = self.memory.get_constant_address('str', value)
+        return address
 
     def free_temp_memory(self, memory_address):
-        x = 20
+        self.memory.free_if_temp(memory_address)
 
     def read(self):
         #Return temporal
+
         x = 20
 
     def operate(self, operator, left_op, right_op):
+        # left_op & right_op = tuple(address, type)
+        res_type = self.oracle.is_valid(operator, left_op, right_op)
+        new_address = self.memory.get_address('temp', res_type)
+        self.quads.generate(OpIds.get(operator), left_op[0], right_op[0], new_address)
         # liberar memoria temporal de left_op y right_op
-        self.oracle.is_valid(operator, left_op, right_op)
+        self.memory.free_if_temp(left_op[0])
+        self.memory.free_if_temp(right_op[0])
+        return (new_address, res_type)
 
     def check_id_exists(self, id):
         '''
@@ -200,11 +231,45 @@ class StatementManager:
         '''
         return self.table.lookup(id)
 
-    def check_call_validity(self, property_name, arguments):
-        x = 20
+    def check_call_validity(self, property, arguments):
+        symbol = property[3]
+        argument_types = list(map(lambda x: x[1], arguments))
+        if not symbol.is_callable:
+            raise Exception('Cannot call a non callable object')
+        if not symbol.accepts_arguments(argument_types):
+            raise Exception('Arguments do not match function parameters.')
+        new_address = self.memory.get_address('temp', symbol.type)
+        return (new_address, symbol.type)
+ 
+    def call_stack(self, stack_symbol, call):
+        if call[0] == 'push':
+            return self.push_stack(stack_symbol, call[1])
+        elif call[0] == 'peek':
+            return self.peek_stack(stack_symbol)
+        else:
+            return self.pop_stack(stack_symbol)
+
+    def push_stack(self, symbol, tuple_expr):
+        if symbol.type != tuple_expr[1]:
+            raise Exception('Cannot push element of type '+tuple_expr[1]+' into a stack of type '+symbol.type)
+        self.quads.generate(OpIds.push, tuple_expr[0], 0, symbol.address)
+        return tuple_exp
+
+    def pop_stack(self, symbol):
+        new_addres = self.memory.get_address('temp', symbol.type)
+        self.quads.generate(OpIds.pop, symbol.address, 0, new_address)
+        return (new_address, symbol.type)
+    
+    def peek_stack(self, symbol):
+        new_addres = self.memory.get_address('temp', symbol.type)
+        self.quads.generate(OpIds.peek, symbol.address, 0, new_address)
+        return (new_address, symbol.type)
 
     def is_stack_type(self, variable):
-        x = 20
+        symbol = self.table.lookup(variable)
+        if not isinstance(symbol, StackSymbol):
+            raise Exception('Cannot perform stack methods on non-stack property '+variable+''.')
+        return symbol
 
     def id_does_not_exist(self, identifier):
         id_exist = self.table.lookup(identifier)

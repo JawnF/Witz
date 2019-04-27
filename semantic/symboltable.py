@@ -2,6 +2,7 @@ from .scope import Scope
 from .symbols import VariableSymbol
 #python
 import copy
+
 class SymbolTable:
     root = 'global'
     current_scope = root
@@ -71,6 +72,7 @@ class SymbolTable:
         self.table[new_scope] = Scope(current_scope, scope_type, symbol)
         self.current_scope = new_scope
     
+
     def store_params(self, symbol):
         for param in symbol.params:
             self.store(param[0], VariableSymbol(param[1], True), False)
@@ -93,8 +95,11 @@ class SymbolTable:
         symbol table or not
         '''
         exists = self.table[self.root].symbols.get(class_name)
+        if not isinstance(exists, ClassSymbol):
+            raise Exception('\''+class_name+'\' is not a class.')
         return exists
     
+    ###
     def set_constructor(self, name, symbol):
         if name == self.current_scope:
             self.store(name, symbol, 'function')
@@ -110,11 +115,22 @@ class SymbolTable:
                 return False
             self.search_scope = self.scope().parent
 
+    def replace_symbol(self, to_replace, new_symbol):
+        self.set_search_scope()
+        while self.search_scope:
+            for name,symbol in self.s_scope().symbols:
+                if symbol == to_replace:
+                    return self.table[search_scope].symbols[name] = new_symbol
+            self.search_scope = self.s_scope().parent
+        raise Exception('Error while assigning object of type '+to_replace.type+'.')
+    
+    ###
     def local_neg_lookup(self, name):
         if name in self.scope().symbols:
             raise Exception('Value '+name+' already exists!')
         return False
 
+    ###
     def check_new(self, constructor, var_type):
         if not constructor == var_type:
             raise Exception('Constructor doesn\'t match variable type')
@@ -154,6 +170,7 @@ class SymbolTable:
     def set_search_scope(self):
         self.search_scope = self.current_scope
 
+    ###
     def check_variable(self, name):
         self.set_search_scope()
         while self.search_scope:
@@ -175,11 +192,11 @@ class SymbolTable:
     def check_property(self, name):
         value = self.lookup(name)
         if value.symbol_type == 'class':
-            #raise Exception('Invalid use of class '+name)
             return False
         else:
             return value
 
+    ###
     def check_return(self, ret_type):
         '''
             Function that checks that the current's scope return 
@@ -189,24 +206,27 @@ class SymbolTable:
             return False
         return True
 
+    ###
     def check_stack(self, name):
         var_type = self.get_type(name)
         if var_type != 'stack':
             raise Exception('Variable '+name+' must be of type stack')
 
+    ###
     def get_type(self, name):
         variable = self.check_variable(name)
         return variable.var_type
 
+    ###
     def check_params(self, symbol, args):
         if not symbol.is_callable:
             raise Exception('Attempting to call a non-callable attribute')
-        if symbol.param_type != args:
+        if symbol.param_types != args:
             raise Exception('Arguments do not match function')
         return symbol
 
+    ###
     def check_variable_symbol(self, sym):
         if not isinstance(sym, VariableSymbol):
             raise Exception('Cannot assign value to non-variable symbol')
         
-            

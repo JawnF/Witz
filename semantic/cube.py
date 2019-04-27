@@ -327,8 +327,37 @@ class SemanticCube:
                 'str' : False,
                 'stack' : False
             }
+        },
+
+        '=' : {
+            'int' : {
+                'int' : 'int',
+                'float' : 'float',
+                'str' : 'str',
+                'stack' : False
+            },
+            'float': {
+                'int': 'int',
+                'float': 'float',
+                'str': 'str',
+                'stack': False
+            },
+            'str' : {
+                'int': 'int',
+                'float': 'float',
+                'str': 'str',
+                'stack' : False
+            },
+            'stack' : {
+                'int': 'int',
+                'float': 'float',
+                'str': 'str',
+                'stack' : False
+            }
         }
     }
+
+    # TODO : agregar bools a cubo
 
     types = ['stack', 'int', 'float', 'str']
 

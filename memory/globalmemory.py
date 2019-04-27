@@ -19,7 +19,7 @@ class GlobalMemory:
 			'bool' : self.bools,
 			'str' : self.strs,
 			'obj' : self.objs,
-		}.get(type)
+		}.get(type, self.objs)
 		index = self.last_index(mem) + 1
 		address = index + mem[self.start]
 		if address > mem[self.end]:

@@ -1,5 +1,6 @@
 @dog(foo:str) {
     #bark:void(){
         foo = "hello world";
+        $x:int = 4 * 10;
     }
 }

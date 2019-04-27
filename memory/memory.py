@@ -2,6 +2,8 @@ from .globalmemory import GlobalMemory
 from .localmemory import LocalMemory
 from .temporalmemory import TemporalMemory
 from .constmemory import ConstMemory
+from addressresolver import AddressResolver as ranges
+
 
 class Memory:
     
@@ -20,5 +22,13 @@ class Memory:
             'instance' : self.intances
         }.get(scope)
         return directory.get_next(type)
+    
+    def free_if_temp(self, address):
+        if ranges.get_scope_and_type_from_address(address)[0] == 'temp':
+            self.free(address)
 
+    def free(self, address):
+        pass
 
+    def get_constant_address(self, value):
+        pass
