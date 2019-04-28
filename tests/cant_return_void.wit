@@ -1,6 +1,24 @@
-@dog(foo:str) {
-    #bark:void(){
-        foo = "hello world";
-        $x:int = 4 * 10;
+@dog(name:str, age:int) {
+    #bark:void(times:int){
+        $foo:int = 3;
+        print(foo);
     }
 }
+
+@pug<dog>(owner:str){
+    #run:int(){
+        print("oh yes");
+        <- this.age
+    }
+}
+
+$fito:dog = new dog('fito', 3);
+$bruno:pug = new pug("bruno", 2, "Pepe");
+print(fito.name);
+fito.bark(1);
+bruno.bark(2);
+bruno.run();
+$foo:stack(dog);
+foo.push(fito);
+$bar:dog = foo.pop();
+print(bar.name);

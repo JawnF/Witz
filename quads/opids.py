@@ -15,11 +15,17 @@ class OpIds:
     goto = 14
     gotof = 15
     gotov = 16
-    read = 17
-    prnt = 18
+    io_read = 17
+    io_print = 18
     push = 19
     pop = 20
     peek = 21
+    declare = 22
+    func_return = 23
+    inherit = 24
+    attr = 25
+    grab = 26
+    endattr = 27
 
     @staticmethod
     def get(self, op):

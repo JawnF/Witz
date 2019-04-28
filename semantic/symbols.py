@@ -14,6 +14,10 @@ class FunctionSymbol(Symbol):
     is_callable = True
     def __init__(self, address, v_type, params):
         Symbol.__init__(self, address, v_type)
+        param_names = set(map(lambda (n,t): n, params))
+        if len(param_names) != len(params):
+            raise Exception('Cannot have duplicate attribute names in function declaration.')
+
         self.params = params
         self.param_types = list(map(lambda x: x[1], params))
     
@@ -43,11 +47,14 @@ class ClassSymbol(Symbol):
     is_callable = False
     def __init__(self, address, v_type, parent, params):
         '''
-        Parent: Name of parent it inherits from -if-
-        Quad number: Number of quad where the class starts
+            Parent: Name of parent it inherits from -if-
+            Quad number: Number of quad where the class starts
         '''
         Symbol.__init__(self, address, v_type)
         self.parent = parent
+        param_names = set(map(lambda (n,t): n, params))
+        if len(param_names) != len(params):
+            raise Exception('Cannot have duplicate attribute names in class declaration.')
         self.params = params
         self.param_types = list(map(lambda x: x[1], params))
     

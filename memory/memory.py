@@ -12,6 +12,7 @@ class Memory:
         self.locals = LocalMemory()
         self.temps = TemporalMemory()
         self.consts = ConstMemory()
+        # TODO : hacer clase de instancememory y descomentar linea 38
 
     def get_address(self, scope, type):
         directory = {
@@ -31,4 +32,8 @@ class Memory:
         pass
 
     def get_constant_address(self, value):
+        pass
+
+    def clear_instance_memory(self):
+        # self.instances = InstanceMemory()
         pass

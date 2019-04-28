@@ -11,8 +11,7 @@ class QuadGenerator:
                  'INSTANCE', 'ASSIGN', 'FUNC']
 
     def generate(self, operator, left, right, target_address, pending = False):
-        operator_type = self.operator_to_number(operator)
-        quad = Quad(operator_type, left, right, target_address, pending)
+        quad = Quad(operator, left, right, target_address, pending)
         self.quads[self.current_index] = quad
         self.current_index += 1
 

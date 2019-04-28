@@ -24,9 +24,10 @@ def p_classes(p):
     '''classes : class classes
                | empty
     '''
+    manager.clear_instance_memory()
 
 def p_class(p):
-    '''class : '@' ID inheritance params scope_class store_attributes class_block
+    '''class : '@' ID inheritance params scope_class class_block
     '''
     manager.end_class_scope()
 
@@ -96,6 +97,7 @@ def p_return_type(p):
 def p_func_block(p):
     '''func_block : '{' statements return '}'
     '''
+    manager.return_void()
     
 def p_return(p):
     '''return : RETURN exp ';'
@@ -105,8 +107,6 @@ def p_return(p):
         # table.check_return(p[2][1])
         return_value = p[2]
         manager.return_value(return_value)
-    else:
-        manager.return_void()
 
 
 
@@ -135,13 +135,12 @@ def p_statement(p):
 def p_declaration(p):
     '''declaration : '$' attr 
     '''
-    p[0] = (manager.declare(p[2]), p[2][1])
+    p[0] = manager.declare(p[2])
     
 def p_attr(p):
     '''attr : ID ':' type
             | ID ':' stack_type
     '''
-    # table.neg_lookup(p[1])
     p[0] = (p[1], p[3])
 
 def p_type(p):
@@ -196,7 +195,6 @@ def p_read(p):
     '''read : READ '(' ')'
     '''
     p[0] = manager.read()
-#    ---------------------------------------------- Vamos aqui... hacia arriba
 
 def p_assign(p):
     '''assign : var '=' exp
@@ -228,6 +226,7 @@ def p_constructor_call(p):
     class_name = p[1]
     args = p[3]
     p[0] = manager.instantiate(class_name, args)
+#  ---------------------------------------- Ahora pa abajo xd
 
 def p_stack_call(p):
     '''stack_call : ID '.' stack_method
@@ -508,8 +507,8 @@ def p_scope_class(p):
     '''
     class_name = p[-3]
     parent_class = p[-2]
-    # table.store(class_name, ClassSymbol(parent_class), 'class')
-    manager.start_class_scope(class_name, parent_class)
+    params = p[-1]
+    manager.start_class_scope(class_name, parent_class, params)
 
 # Rule in charge of creating a new function scope
 def p_scope_function(p):
@@ -518,7 +517,6 @@ def p_scope_function(p):
     function_name = p[-5]
     return_type = p[-2]
     params = p[-1]
-    # table.store(function_name, FunctionSymbol(return_type, params),'function')
     manager.start_function_scope(function_name, return_type, params)
 
 def p_check_class(p):
@@ -532,12 +530,6 @@ def p_neg_lookup(p):
     '''
     # table.local_neg_lookup(p[-1])
     manager.id_does_not_exist(p[-1])
-
-# Rule in charge of storing the attributes of the class
-def p_store_attributes(p):
-    '''store_attributes : empty
-    '''
-    manager.store_class_attributes(p[-2])
 
 
 # Flow controls
