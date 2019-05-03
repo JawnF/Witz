@@ -14,16 +14,14 @@ class FlowManager:
     # -------- IF block flow
     
     def if_after_block(self):
-        fill = self.quads.pop_jump()
-        self.quads.fill_jump(fill)
+        self.quads.fill_jump()
     
     # -------- IF ELSE block flow
 
     def if_else_after_if_block(self):
-        fill = self.quads.pop_jump()
         self.quads.store_jump()
         self.generate_goto()
-        self.quads.fill_jump(fill)
+        self.quads.fill_jump()
     
     # -------- WHILE block flow
 
@@ -31,10 +29,9 @@ class FlowManager:
         self.quads.store_jump()
         
     def while_after_block(self):
-        fill = self.quads.pop_jump()
         start = self.quads.pop_jump()
         self.generate_goto(start)
-        self.quads.fill_jump(fill)
+        self.quads.fill_jump()
     
     # -------- FOR block flow
 
@@ -44,7 +41,7 @@ class FlowManager:
     # -------- Other
 
     def generate_goto(self, target = None):
-        self.quads.generate('GOTO', None, None, target, target == None)
+        self.quads.generate(OpIds.goto, None, None, target, target == None)
     
     def generate_gotof(self, temp, target = None):
         self.quads.generate('GOTOF', temp, None, target, target == None)

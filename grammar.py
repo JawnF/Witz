@@ -5,9 +5,14 @@ manager = StatementManager()
 
 # Grammar for the general structure of the program
 def p_program(p):
-    '''program : classes functions statements
+    '''program : classes functions fill_goto statements
     '''
     manager.create_quads_txt()
+
+def p_fill_goto(p):
+    '''fill_goto : empty
+    '''
+    manager.fill_goto()
 
 
 

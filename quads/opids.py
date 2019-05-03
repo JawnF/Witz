@@ -26,23 +26,24 @@ class OpIds:
     attr = 25
     grab = 26
     endattr = 27
+    instance = 28
 
     @staticmethod
-    def get(self, op):
+    def get(op):
         return {
-            '+' : self.add,
-            '-' : self.sub,
-            '*' : self.mult,
-            '/' : self.div,
-            '>' : self.gt,
-            '<' : self.lt,
-            '>=' : self.ge,
-            '<=' : self.le,
-            '==' : self.eq,
-            '!=' : self.ne,
-            'and' : self.logic_and,
-            'or' : self.logic_or,
-            'push' : self.push,
-            'pop' : self.pop,
-            'peek' : self.peek,
+            '+' : OpIds.add,
+            '-' : OpIds.sub,
+            '*' : OpIds.mult,
+            '/' : OpIds.div,
+            '>' : OpIds.gt,
+            '<' : OpIds.lt,
+            '>=' : OpIds.ge,
+            '<=' : OpIds.le,
+            '==' : OpIds.eq,
+            '!=' : OpIds.ne,
+            'and' : OpIds.logic_and,
+            'or' : OpIds.logic_or,
+            'push' : OpIds.push,
+            'pop' : OpIds.pop,
+            'peek' : OpIds.peek,
         }.get(op)

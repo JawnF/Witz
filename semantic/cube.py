@@ -362,9 +362,9 @@ class SemanticCube:
     types = ['stack', 'int', 'float', 'str']
 
     def is_valid(self, op, left, right):
-        if not left in self.types or not right in self.types:
+        if not left[1] in self.types or not right[1] in self.types:
             raise Exception('Cannot perform operation '+op+' on class instances.') 
-        result_type = self.oracle[op][left][right]
+        result_type = self.oracle[op][left[1]][right[1]]
         if result_type:
             return result_type
         raise Exception('Cannot use operand '+op+' between types '+left+' and '+right)

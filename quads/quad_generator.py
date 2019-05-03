@@ -5,10 +5,6 @@ class QuadGenerator:
     quads = {}
     current_index = 1
     jumps = []
-    operators = ['+','=','-','*','/', 'GOTO', 'GOTOF', 'GOTOV',
-                 'PRINT', 'READ', 'OR', 'AND', 'CONST', 'ATTR',
-                 'RETURN', 'VAR', 'ENDCLASS', 'INHERIT', 'ENDATTR',
-                 'INSTANCE', 'ASSIGN', 'FUNC']
 
     def generate(self, operator, left, right, target_address, pending = False):
         quad = Quad(operator, left, right, target_address, pending)
@@ -21,11 +17,9 @@ class QuadGenerator:
     def pop_jump(self):
         return self.jumps.pop()
     
-    def fill_jump(self, index):
+    def fill_jump(self):
+        index = self.pop_jump()
         temp_quad = self.quads[index]
         temp_quad.target = self.current_index
         self.quads[index] = temp_quad
-
-    def operator_to_number(self, operator):
-        return self.operators.index(operator)
     

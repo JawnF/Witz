@@ -28,7 +28,7 @@ class VariableSymbol(Symbol):
     symbol_type = 'variable'
     is_callable = False
     
-    def __init__(self, address, v_type, attrs = None):
+    def __init__(self, address, v_type, attrs = {}):
         Symbol.__init__(self, address, v_type)
         self.attrs = attrs
     

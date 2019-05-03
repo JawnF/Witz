@@ -7,5 +7,5 @@ class Quad:
         self.pending = pending
     
     def __str__(self):
-        representation = '(' + self.operation + ',' + self.left + ',' + self.right + ',' + self.target + ')'
+        representation = str(self.operation) + ',' + str(self.left) + ',' + str(self.right) + ',' + str(self.target)
         return representation

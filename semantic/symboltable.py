@@ -13,12 +13,12 @@ class SymbolTable:
     def __init__(self):
         self.table[self.root] = Scope(None, 'global', None) 
 
-    def root(self):
+    def root_scope(self):
         return self.table[self.root]
 
 
-    # def scope(self):
-    #     return self.table[self.current_scope]
+    def scope(self):
+        return self.table[self.current_scope]
 
     def s_scope(self):
         return self.table[self.search_scope]
@@ -53,14 +53,14 @@ class SymbolTable:
         # Stores the parents attributes into the current class scope
         self.table[self.current_scope].symbols = copy.deepcopy(parent_symbols)
     
-    # def lookup(self, name):
-    #     '''Recibe el nombre del ID a buscar, regresa true si
-    #     lo encontro en el scope actual de la semantica,
-    #     '''
-    #     exist = self.look_current_search_scope(name)
-    #     # if not exist:
-    #     #     raise Exception('Value doesn\'t exist')
-    #     return exist
+    def lookup(self, name):
+        '''Recibe el nombre del ID a buscar, regresa true si
+        lo encontro en el scope actual de la semantica,
+        '''
+        exist = self.look_current_search_scope(name)
+        # if not exist:
+        #     raise Exception('Value doesn\'t exist')
+        return exist
     
     def neg_lookup(self, name):
         '''
@@ -87,12 +87,12 @@ class SymbolTable:
         self.table[new_scope] = Scope(current_scope, scope_type, symbol)
         self.current_scope = new_scope
     
-    # def store_params(self, symbol):
-    #     '''
-    #     Stores the parameters in the function symbol
-    #     '''
-    #     for param in symbol.params:
-    #         self.store(param[0], VariableSymbol(param[1], True), False)
+    def store_params(self, symbol):
+        '''
+        Stores the parameters in the function symbol
+        '''
+        for param in symbol.params:
+            self.store(param[0], VariableSymbol(param[1], True), False)
 
     def currently_in_class(self):
         return self.scope().type == 'class'
@@ -102,7 +102,7 @@ class SymbolTable:
             Function that returns a class (symbol) if it exists
             or raises exception if it doesn't
         '''
-        exists = self.root().symbols.get(class_name)
+        exists = self.root_scope().symbols.get(class_name)
         if not isinstance(exists, ClassSymbol):
             raise Exception('\''+class_name+'\' is not a class.')
         return exists
@@ -132,9 +132,9 @@ class SymbolTable:
     def replace_symbol(self, to_replace, new_symbol):
         self.set_search_scope()
         while self.search_scope:
-            for name,symbol in self.s_scope().symbols:
+            for name,symbol in self.s_scope().symbols.items():
                 if symbol == to_replace:
-                    self.table[search_scope].symbols[name] = new_symbol
+                    self.s_scope().symbols[name] = new_symbol
                     return new_symbol 
             self.search_scope = self.s_scope().parent
         raise Exception('Error while assigning object of type '+to_replace.type+'.')
@@ -184,8 +184,8 @@ class SymbolTable:
     #         self.search_scope = self.s_scope().parent  
     #     return False
 
-    # def set_search_scope(self):
-    #     self.search_scope = self.current_scope
+    def set_search_scope(self):
+        self.search_scope = self.current_scope
 
     # ###
     # def check_variable(self, name):
@@ -206,22 +206,21 @@ class SymbolTable:
     #         raise Exception('Variable has no property '+name)
     #     return class_scope.symbols[name]
 
-    # def check_property(self, name):
-    #     value = self.lookup(name)
-    #     if value.symbol_type == 'class':
-    #         return False
-    #     else:
-    #         return value
+    def check_property(self, name):
+        value = self.lookup(name)
+        if value.symbol_type == 'class':
+            return False
+        else:
+            return value
 
-    # ###
-    # def check_return(self, ret_type):
-    #     '''
-    #         Function that checks that the current's scope return 
-    #         type is the same as the one that is being passed
-    #     '''
-    #     if self.scope().symbol.return_type != ret_type:
-    #         return False
-    #     return True
+    def check_return(self, ret_type):
+        '''
+            Function that checks that the current's scope return 
+            type is the same as the one that is being passed
+        '''
+        if self.scope().symbol.type != ret_type:
+            return False
+        return True
 
     # ###
     # def check_stack(self, name):

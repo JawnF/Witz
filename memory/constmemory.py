@@ -1,2 +1,0 @@
-class ConstMemory:
-	pass

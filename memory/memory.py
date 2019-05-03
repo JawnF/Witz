@@ -1,9 +1,9 @@
-from .globalmemory import GlobalMemory
-from .localmemory import LocalMemory
-from .temporalmemory import TemporalMemory
-from .constmemory import ConstMemory
+from .memoryblocks import GlobalMemory
+from .memoryblocks import TemporalMemory
+from .memoryblocks import LocalMemory
+from .memoryblocks import ConstantMemory
+from .memoryblocks import InstanceMemory
 from addressresolver import AddressResolver as ranges
-
 
 class Memory:
     
@@ -11,29 +11,24 @@ class Memory:
         self.globals = GlobalMemory()
         self.locals = LocalMemory()
         self.temps = TemporalMemory()
-        self.consts = ConstMemory()
-        # TODO : hacer clase de instancememory y descomentar linea 38
+        self.consts = ConstantMemory()
+        self.instances = InstanceMemory()
 
-    def get_address(self, scope, type):
+    def get_address(self, scope, v_type):
         directory = {
         	'global' : self.globals,
         	'local' : self.locals,
         	'temp' : self.temps,
         	'const' : self.consts,
-            'instance' : self.intances
+            'instance' : self.instances
         }.get(scope)
-        return directory.get_next(type)
+        return directory.get_next(v_type)
     
     def free_if_temp(self, address):
-        if ranges.get_scope_and_type_from_address(address)[0] == 'temp':
-            self.free(address)
+        self.temps.free(address)
 
-    def free(self, address):
-        pass
-
-    def get_constant_address(self, value):
-        pass
+    def get_constant_address(self, v_type, value):
+        return self.consts.get_constant_address(v_type, value)
 
     def clear_instance_memory(self):
-        # self.instances = InstanceMemory()
-        pass
+        self.instances = InstanceMemory()
