@@ -61,5 +61,7 @@ class ClassSymbol(Symbol):
     def accepts_arguments(self, argument_types):
         return self.param_types == argument_types
     
+    #def instantiate(self):
+
 class StackSymbol(Symbol):
     pass

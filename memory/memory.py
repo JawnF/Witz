@@ -32,3 +32,43 @@ class Memory:
 
     def clear_instance_memory(self):
         self.instances = InstanceMemory()
+
+    def get_value(self, address):
+        (scope, v_type) = ranges.get_scope_and_type_from_address(address)
+        return {
+        	'global' : self.globals,
+        	'local' : self.locals,
+        	'temp' : self.temps,
+        	'const' : self.consts,
+            'instance' : self.instances
+        }.get(scope).retrieve(v_type, address)
+    
+    def store(self, address, value):
+        scope_type = ranges.get_scope_and_type_from_address(address)
+        directory = {
+        	'global' : self.globals,
+        	'local' : self.locals,
+        	'temp' : self.temps,
+        	'const' : self.consts,
+            'instance' : self.instances
+        }.get(scope_type[0]).store(scope_type, address, value)
+    
+    def print_value(self, address):
+        scope_type = ranges.get_scope_and_type_from_address(address)
+        directory = {
+        	'global' : self.globals,
+        	'local' : self.locals,
+        	'temp' : self.temps,
+        	'const' : self.consts,
+            'instance' : self.instances
+        }.get(scope_type[0]).print_value(scope_type, address)
+    
+    def get_dict_with_address(self, address):
+        scope_type = ranges.get_scope_and_type_from_address(address)
+        directory = {
+        	'global' : self.globals,
+        	'local' : self.locals,
+        	'temp' : self.temps,
+        	'const' : self.consts,
+            'instance' : self.instances
+        }.get(scope_type[0]).print_value(scope_type)

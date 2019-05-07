@@ -34,6 +34,53 @@ class GlobalMemory:
 		if index < 0:
 			return -1 + mem[self.start]
 		return index
+	
+	def store(self, scope_type, address, value):
+		v_type = scope_type[1]
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(v_type, self.objs)
+		cast = {
+			'int' : int,
+			'float' : float,
+			'bool' : bool,
+			'str' : str,
+		}.get(scope_type[1], lambda x: x)
+		mem[address] = cast(value)
+	
+	def print_value(self, scope_type, address):
+		v_type = scope_type[1]
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+		}.get(v_type)
+		print(mem[address])
+	
+	def get_dict_with_address(self, scope_type):
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(scope_type[1], self.objs)
+		return mem
+	
+	def retrieve(self, scope_type, address):
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(scope_type, self.objs)
+		return mem[address]
 
 
 class TemporalMemory:
@@ -84,6 +131,53 @@ class TemporalMemory:
 			mem.pop(addr)
 			if mem[self.next_addr] > addr:
 				mem[self.next_addr] = addr
+	
+	def store(self, scope_type, address, value):
+		v_type = scope_type[1]
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(v_type, self.objs)
+		cast = {
+			'int' : int,
+			'float' : float,
+			'bool' : bool,
+			'str' : str,
+		}.get(scope_type[1], lambda x: x)
+		mem[address] = cast(value)
+	
+	def print_value(self, scope_type, address):
+		v_type = scope_type[1]
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+		}.get(v_type)
+		print(mem[address])
+	
+	def get_dict_with_address(self, scope_type):
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(scope_type[1], self.objs)
+		return mem
+
+	def retrieve(self, scope_type, address):
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(scope_type, self.objs)
+		return mem[address]
             
 class LocalMemory:
 
@@ -138,6 +232,52 @@ class LocalMemory:
 		if index < 0:
 			return -1 + mem[self.start]
 		return index
+	
+	def store(self, scope_type, address, value):
+		v_type = scope_type[1]
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(v_type, self.objs)
+		cast = {
+			'int' : int,
+			'float' : float,
+			'bool' : bool,
+			'str' : str,
+		}.get(v_type)
+		mem[address] = cast(value, lambda x: x)
+	
+	def print_value(self, scope_type, address):
+		v_type = scope_type[1]
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+		}.get(v_type)
+	
+	def get_dict_with_address(self, scope_type):
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(scope_type[1], self.objs)
+		return mem
+
+	def retrieve(self, scope_type, address):
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(scope_type, self.objs)
+		return mem[address]
 
 class ConstantMemory:
 	start = -1
@@ -188,6 +328,53 @@ class ConstantMemory:
 		new_addr = self.get_next(v_type)
 		mem[new_addr] = value
 		return new_addr
+	
+	def store(self, addr, val):
+		scope_type = resolver.get_scope_and_type_from_address(addr)
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(scope_type[1], self.objs)
+		cast = {
+			'int' : int,
+			'float' : float,
+			'bool' : bool,
+			'str' : str,
+		}.get(scope_type[1])
+		mem[addr] = cast(val)
+	
+	def retrieve(self, scope_type, address):
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(scope_type, self.objs)
+		return mem[address]
+	
+	def print_value(self, scope_type, address):
+		v_type = scope_type[1]
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+		}.get(v_type)
+		print(mem[address])
+	
+	def get_dict_with_address(self, scope_type):
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(scope_type[1], self.objs)
+		return mem
 
 
 class InstanceMemory:

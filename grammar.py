@@ -102,7 +102,6 @@ def p_return_type(p):
 def p_func_block(p):
     '''func_block : '{' statements return '}'
     '''
-    manager.return_void()
     
 def p_return(p):
     '''return : RETURN exp ';'
@@ -112,6 +111,8 @@ def p_return(p):
         # table.check_return(p[2][1])
         return_value = p[2]
         manager.return_value(return_value)
+    else:
+        manager.return_void()
 
 
 
@@ -467,8 +468,6 @@ def p_block(p):
 
 
 
-
-
 # 
 # OTHER Rules
 # 
@@ -542,12 +541,11 @@ def p_neg_lookup(p):
 def p_exp_evaluation(p):
     '''exp_evaluation : empty
     '''
-    manager.flow.exp_evaluation()
+    manager.flow.exp_evaluation(p[-1])
 
 def p_after_if_block(p):
     '''after_if_block : empty
     '''
-    # flow.if_else_after_if_block() 
     manager.flow.if_else_after_if_block()
 
 def p_leave_breadcrumb(p):

@@ -27,6 +27,7 @@ class OpIds:
     grab = 26
     endattr = 27
     instance = 28
+    endconst = 29
 
     @staticmethod
     def get(op):

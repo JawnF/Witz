@@ -16,9 +16,11 @@ class SymbolTable:
     def root_scope(self):
         return self.table[self.root]
 
-
     def scope(self):
         return self.table[self.current_scope]
+
+    def get_class_scope(self, class_name):
+        return self.table[class_name]
 
     def s_scope(self):
         return self.table[self.search_scope]
@@ -58,8 +60,6 @@ class SymbolTable:
         lo encontro en el scope actual de la semantica,
         '''
         exist = self.look_current_search_scope(name)
-        # if not exist:
-        #     raise Exception('Value doesn\'t exist')
         return exist
     
     def neg_lookup(self, name):
@@ -221,7 +221,7 @@ class SymbolTable:
         if self.scope().symbol.type != ret_type:
             return False
         return True
-
+    
     # ###
     # def check_stack(self, name):
     #     var_type = self.get_type(name)

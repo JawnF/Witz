@@ -1,15 +1,13 @@
-from .quad_generator import QuadGenerator
-from quads.temp import Temp
+from quads.opids import OpIds
 
 class FlowManager:
 
     def __init__(self, generator):
         self.quads = generator
 
-    def exp_evaluation(self):
-        temp = Temp.last()
+    def exp_evaluation(self, variable_data):
+        self.generate_gotof(variable_data[0])
         self.quads.store_jump()
-        self.generate_gotof(temp)
 
     # -------- IF block flow
     
@@ -19,9 +17,9 @@ class FlowManager:
     # -------- IF ELSE block flow
 
     def if_else_after_if_block(self):
-        self.quads.store_jump()
-        self.generate_goto()
         self.quads.fill_jump()
+        self.generate_goto()
+        self.quads.store_jump()
     
     # -------- WHILE block flow
 
@@ -41,7 +39,7 @@ class FlowManager:
     # -------- Other
 
     def generate_goto(self, target = None):
-        self.quads.generate(OpIds.goto, None, None, target, target == None)
+        self.quads.generate(OpIds.goto, 0, 0, target, target == None)
     
     def generate_gotof(self, temp, target = None):
-        self.quads.generate('GOTOF', temp, None, target, target == None)
+        self.quads.generate(OpIds.gotof, temp, 0, target, target == None)

@@ -18,6 +18,9 @@ import copy
 import sys
 #sys.tracebacklimit = 0
 
+# pendientes
+#   imprimir constantes a archivo
+
 class StatementManager:
 	in_local_scope = False
 
@@ -26,13 +29,13 @@ class StatementManager:
 		self.oracle = SemanticCube()
 		self.quads = QuadGenerator()
 		self.memory = Memory()
-		#self.flow = FlowManager(self.quads, self.memory)
+		self.flow = FlowManager(self.quads)
 		# Creating the quad for the initial functions jump
 		self.create_initial_jump()
 
 	def get_symbol_from_name(self, id):
 		'''
-		Function that checks if an id exists
+			Function that checks if an id exists in current scope or above
 		'''
 		return self.table.lookup(id)
 
@@ -42,13 +45,13 @@ class StatementManager:
 			the main functions are being executed
 		'''
 		# We create a new GOTO quad
-		self.quads.generate(OpIds.goto, 0, 0, None)
+		self.quads.store_jump()
 		# Current index quad is at 2, we store the previous quad by adding -1
-		self.quads.store_jump(-1)
+		self.flow.generate_goto()
 	
 	def start_class_scope(self, class_name, parent_name, params):
 		'''
-			Function that starts a new class scope
+			Function that starts a new class scope in symbol table and enters it
 		'''
 		# We first have be sure that the class isn't already defined
 		class_exists = self.get_symbol_from_name(class_name)
@@ -80,35 +83,22 @@ class StatementManager:
 			address type -instace, local-
 		'''
 		for param in params:
+			# Assigns a new address for the current param
 			new_address = self.memory.get_address(address_type, param[1])
+			# Stores the variable symbol in the symbol table
 			self.table.store(param[0], VariableSymbol(new_address, param[1]))
+			# Generates a new quad with the given operation and the new address
 			self.quads.generate(operation, 0, 0, new_address)
 
 	def check_class_exists(self, class_name):
 		'''
-			Function that checks if a class that is 
-			being inherited from exists, if it doesn't it throws
+			Function that checks if a class, that is 
+			being inherited from, exists, if it doesn't it throws
 			and exception
 		'''
 		class_exists = self.table.get_class(class_name)
 		if not class_exists:
-			raise Exception('Class doesn\'t exist')
-
-	def store_class_attributes(self, attributes):
-		'''
-			Function that will store the current class scope attributes in its
-			corresponding key at symbol table
-		'''
-		for attribute in attributes:
-			# Each attribute is stored in a tuple
-			attribute_name = attribute[0]
-			attribute_type = attribute[1]
-			# Check if attribute exists
-			attribute_exists = self.table.neg_lookup(attribute_name)
-			if not attribute_exists:
-				self.table.store(attribute_name, VariableSymbol(attribute_type), False)
-			else :
-				raise Exception('Attribute already exists')
+			raise Exception('Class '+class_name+' doesn\'t exist')
 
 	def start_function_scope(self, function_name, return_type, parameters):
 		# Stores the function element
@@ -123,41 +113,37 @@ class StatementManager:
 		'''
 		self.memory.locals.end_function()
 		self.table.close_scope()
+		self.in_local_scope = False
 		self.quads.generate(OpIds.func_return, 0, 0, 0)
 
-	def declare(self, var_tuple):
-		var_name = var_tuple[0]
-		var_type = var_tuple[1]
-		# Verifies that the variable doesnt exist
-		self.table.local_neg_lookup(var_name)
-		scope = 'local' if self.in_local_scope else 'global'
-		address = self.memory.get_address(scope, var_type)
-		self.quads.generate(OpIds.declare, 0, 0, address)
-		var_symbol = VariableSymbol(address, var_type)
-		self.table.store(var_name, var_symbol)
-		return (address, var_type, var_symbol)
-
-	def instantiate(self, class_name, args):
+	def get_attrs_dict_for_class(self, class_name, args):
 		# Gets symbol of the class
 		class_symbol = self.table.get_class(class_name)
 		# Make sure args are same type as params
 		argument_types = list(map(lambda x: x[1], args))
 		accepts = class_symbol.accepts_arguments(argument_types)
 		if not accepts:
-			raise Exception('Arguments do not match constructor')
+			raise Exception('Arguments do not match constructor for class \''+class_name+'\'.')
+		attrs = {}
 		# Matches class param with passed args
 		class_attributes = zip(class_symbol.params, args)
-		symbol_attributes = {}
 		for (param, arg) in class_attributes:
-			if len(arg) == 3:
-				symbol_attributes[param[0]] = arg[2]
-			else:
-				new_addr = self.memory.get_address('temp', param[1])
-				symbol_attributes[param[0]] = VariableSymbol(new_addr, param[1])
-		new_address = self.memory.get_address('temp', 'obj')
-		self.quads.generate(OpIds.instance, class_symbol.address, 0, new_address)
-		symbol = VariableSymbol(new_address, class_name, symbol_attributes)
-		return symbol.to_tuple()
+			attrs[param[0]] = arg
+			# if len(arg) == 3:
+			# 	symbol_attributes[param[0]] = arg[2]
+			# else:
+			# 	new_addr = self.memory.get_address('temp', param[1])
+			# 	symbol_attributes[param[0]] = VariableSymbol(new_addr, param[1])
+		return attrs
+
+######################################################################################################################################### Vamos aquii,
+	def instantiate(self, class_name, args):
+		attrs = self.get_attrs_dict_for_class(class_name, args)
+		obj = self.new_var_of_type(class_name, 'temp', attrs)
+		# self.quads.generate(OpIds.instance, class_symbol.address, 0, new_address)
+		# symbol = VariableSymbol(new_address, class_name, symbol_attributes)
+		self.foo = obj
+		return obj.to_tuple()
 
 	def end_class_scope(self):
 		'''
@@ -185,20 +171,23 @@ class StatementManager:
 	def copy_attributes(self, symbol):
 		# If it's an object instance
 		for key, attr in symbol.attrs.items():
-			prev = attr.address
-			new = attr.address = self.memory.get_address('local' if self.in_local_scope else 'global', attr.type)
-			self.quads.generate(OpIds.assign, prev, 0, new)
-			if attr.type not in ['int', 'float', 'bool', 'str']:
-				self.copy_attributes_aux(attr)
+			if isinstance(attr, VariableSymbol):
+				prev = attr.address
+				new = attr.address = self.memory.get_address('local' if self.in_local_scope else 'global', attr.type)
+				self.quads.generate(OpIds.assign, prev, 0, new)
+				if attr.type not in ['int', 'float', 'bool', 'str']:
+					self.copy_attributes_aux(attr)
 
 	def copy_attributes_aux(self, symbol):
 		symbol.address = self.memory.get_address('local' if self.in_local_scope else 'global', symbol.type)
+		
 		for key, attr in symbol.attrs.items():
-			prev = attr.address
-			new = attr.address = self.memory.get_address('local' if self.in_local_scope else 'global', attr.type)
-			self.quads.generate(OpIds.assign, prev, 0, new)
-			if attr.type not in ['int', 'float', 'bool', 'str']:
-				self.copy_attributes_aux(attr)
+			if isinstance(attr, VariableSymbol):
+				prev = attr.address
+				new = attr.address = self.memory.get_address('local' if self.in_local_scope else 'global', attr.type)
+				self.quads.generate(OpIds.assign, prev, 0, new)
+				if attr.type not in ['int', 'float', 'bool', 'str']:
+					self.copy_attributes_aux(attr)
 
 	def this_property(self, prop_id):
 	    '''
@@ -215,7 +204,7 @@ class StatementManager:
 	                raise Exception('Cannot use stack '+prop_id+' outside a stack call.')
 				
 	            # Returns the symbol
-	            return class_has_property
+	            return class_has_property.to_tuple()
 	        else:
 	            raise Exception('Property '+prop_id+' does not exist in class '+in_class_scope+'.')
 	    # If we are not inside a class scope, then the keyword this is not available
@@ -226,14 +215,14 @@ class StatementManager:
 	    '''
 	    Function that handles the id.id functionallity
 	    '''
-	    variable_exists = self.id_property(var_id)
+	    variable_exists = self.id_property(var_id)[2]
 	    if isinstance(variable_exists, FunctionSymbol):
 	        raise Exception('Cannot access property of function '+var_id+'.')
 	    if variable_exists:
-	        symbol = variable_exists.get_attribute(property_id)
-	        if not symbol:
-	            raise Exception('Variable '+var_id+' does not have attribute '+property_id+'.')
-	        return symbol.to_tuple()
+			symbol = variable_exists.get_attribute(property_id)
+			if not symbol:
+				raise Exception('Variable '+var_id+' does not have attribute '+property_id+'.')
+			return symbol.to_tuple()
 
 	def id_property(self,property_id):
 	    class_property = self.table.check_property(property_id)
@@ -254,14 +243,14 @@ class StatementManager:
 		if has_correct_return:
 			self.quads.generate(OpIds.func_return, 0, 0, return_value[0])
 		else:
-			raise Exception('Cannot return '+return_value+' in function of type '+self.table.scope().symbol.return_type) 
+			raise Exception('Cannot return '+return_value[1]+' in function of type '+self.table.scope().symbol.type) 
 	
 	def return_void(self):
 		has_correct_return = self.table.check_return('void')
 		if has_correct_return:
 			self.quads.generate(OpIds.func_return, 0, 0, 0)
 		else:
-			raise Exception('Cannot return void in function of type '+self.table.scope().symbol.return_type) 
+			raise Exception('Cannot return void in function of type '+self.table.scope().symbol.type) 
 	
 	def float_constant(self, value):
 	    address = self.memory.get_constant_address('float', value)
@@ -316,13 +305,14 @@ class StatementManager:
 	    if symbol.type != tuple_expr[1]:
 	        raise Exception('Cannot push element of type '+tuple_expr[1]+' into a stack of type '+symbol.type)
 	    self.quads.generate(OpIds.push, tuple_expr[0], 0, symbol.address)
-	    return tuple_exp
+	    return tuple_expr
 
 	def pop_stack(self, symbol):
-	    new_addres = self.memory.get_address('temp', symbol.type)
+	    new_address = self.memory.get_address('temp', symbol.type)
 	    self.quads.generate(OpIds.pop, symbol.address, 0, new_address)
 	    return (new_address, symbol.type)
-	
+
+
 	def peek_stack(self, symbol):
 	    new_addres = self.memory.get_address('temp', symbol.type)
 	    self.quads.generate(OpIds.peek, symbol.address, 0, new_address)
@@ -348,7 +338,71 @@ class StatementManager:
 	# TODO : move to quad_generator
 	def create_quads_txt(self):
 		file = open("quads.txt","w+")
+		for addr, value in self.memory.consts.ints.items():
+			if addr > 0:
+				file.write(str(addr)+','+str(value)+'\n')
+		for addr, value in self.memory.consts.floats.items():
+			if addr > 0:
+				file.write(str(addr)+','+str(value)+'\n')
+		for addr, value in self.memory.consts.bools.items():
+			if addr > 0:
+				file.write(str(addr)+','+str(value)+'\n')
+		for addr, value in self.memory.consts.strs.items():
+			if addr > 0:
+				file.write(str(addr)+','+str(value)+'\n')
+		file.write(str(OpIds.endconst)+'\n')
 		for index, quad in self.quads.quads.items():
-			print(quad)
 			file.write(str(quad)+'\n')
 		file.close()
+
+
+
+# 
+# Var instantiation
+# 
+	def var_type_is_obj(self, type_name):
+		return self.mem_type_from_var_type(type_name) == 'obj'
+
+	def mem_type_from_var_type(self, type_name):
+		return type_name if type_name in ['int', 'float', 'bool', 'str'] else 'obj'
+
+	def new_var_of_type(self, type_name, scope, args = {}):
+		is_stack = isinstance(type_name, tuple) and type_name[0] == 'stack'
+		if is_stack:
+			type_name = type_name[1]
+
+		mem_type = self.mem_type_from_var_type(type_name)
+		new_address = self.memory.get_address(scope, mem_type)
+		self.quads.generate(OpIds.declare, 0, 0, new_address)
+
+		if is_stack:
+			return StackSymbol(new_address, type_name)
+
+		new_attributes = {}
+		if self.var_type_is_obj(type_name):
+			new_attributes = self.get_attributes_for_class(type_name, scope, args)
+		new_symbol = VariableSymbol(new_address, type_name, new_attributes)
+		return new_symbol
+
+	def get_attributes_for_class(self, type_name, scope, args = {}):
+		class_scope = self.table.get_class_scope(type_name)
+		attrs = {}
+		for name,symbol in class_scope.symbols.items():
+			if isinstance(symbol, VariableSymbol):
+				new_symbol = args.get(name, None)
+				if not new_symbol:
+					symbol = self.new_var_of_type(symbol.type, scope)
+			attrs[name] = new_symbol
+		return attrs
+
+	def replicate(self, var_tuple):
+		return
+
+	def declare(self, var_tuple):
+		scope = 'local' if self.in_local_scope else 'global'
+		var_name = var_tuple[0]
+		self.table.local_neg_lookup(var_name)
+		var_type = var_tuple[1]
+		var = self.new_var_of_type(var_type, scope)
+		self.table.store(var_name, var)
+		return var.to_tuple()

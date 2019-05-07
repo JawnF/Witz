@@ -5,7 +5,7 @@
     }
 }
 
-@pug<dog>(owner:str){
+@pug<dog>(name:str, age:int, owner:str){
     #run:int(){
         print("oh yes");
         <- this.age;
