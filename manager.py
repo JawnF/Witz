@@ -26,7 +26,7 @@ class StatementManager:
 		self.oracle = SemanticCube()
 		self.quads = QuadGenerator()
 		self.memory = Memory()
-		self.flow = FlowManager(self.quads, self.memory)
+		#self.flow = FlowManager(self.quads, self.memory)
 		# Creating the quad for the initial functions jump
 		self.create_initial_jump()
 

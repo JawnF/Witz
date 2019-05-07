@@ -125,7 +125,7 @@ class SymbolTable:
         while self.search_scope:
             if name in self.s_scope().symbols:
                 return self.s_scope().symbols[name]
-            if self.search_scope == 'global':
+            if self.search_scope == self.root:
                 return False
             self.search_scope = self.scope().parent
 
@@ -152,37 +152,37 @@ class SymbolTable:
     #     if not constructor == var_type:
     #         raise Exception('Constructor doesn\'t match variable type')
     #     return True
-                        
-    # def check_class_scope(self):
-    #     self.set_search_scope()
-    #     return self.search_class_scope()
-                        
-    # def search_class_scope(self):
-    #     '''
-    #         Function that checks if the current scope is inside a class
-    #         If it is inside a function, it checks its parent class
-    #     '''
-    #     if self.search_scope == self.root:
-    #         return False
-    #     elif self.s_scope().type == 'class':
-    #         return self.search_scope
-    #     self.search_scope = self.scope().parent
-    #     return self.search_class_scope()
-    
-    # def check_class_property(self, name):
-    #     current_class = self.current_class()
-    #     if not current_class or not name in current_class.symbols:
-    #         return False
-    #     else:
-    #         return current_class.symbols[name]
 
-    # def current_class(self):
-    #     self.set_search_scope()
-    #     while self.search_scope:
-    #         if self.s_scope().type == 'class':
-    #             return self.s_scope()
-    #         self.search_scope = self.s_scope().parent  
-    #     return False
+    def check_class_scope(self):
+        self.set_search_scope()
+        return self.search_class_scope()
+
+    def search_class_scope(self):
+        '''
+            Function that checks if the current scope is inside a class
+            If it is inside a function, it checks its parent class
+        '''
+        if self.search_scope == self.root:
+            return False
+        elif self.s_scope().type == 'class':
+            return self.search_scope
+        self.search_scope = self.scope().parent
+        return self.search_class_scope()
+    
+    def check_class_property(self, name):
+        current_class = self.current_class()
+        if not current_class or not name in current_class.symbols:
+            return False
+        else:
+            return current_class.symbols[name]
+
+    def current_class(self):
+        self.set_search_scope()
+        while self.search_scope:
+            if self.s_scope().type == 'class':
+                return self.s_scope()
+            self.search_scope = self.s_scope().parent  
+        return False
 
     def set_search_scope(self):
         self.search_scope = self.current_scope

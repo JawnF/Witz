@@ -8,7 +8,7 @@
 @pug<dog>(owner:str){
     #run:int(){
         print("oh yes");
-        <- this.age
+        <- this.age;
     }
 }
 
