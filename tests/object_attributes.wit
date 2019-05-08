@@ -1,0 +1,12 @@
+@dog(name:str, age:int){
+
+}
+
+$fito:dog = new dog("fito", 3);
+print(fito.name);
+fito.name = "PUTO";
+print(fito.name);
+$lalo:dog = fito;
+lalo.name = "lalo";
+print(lalo.name);
+print(fito.name);

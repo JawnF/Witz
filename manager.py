@@ -15,7 +15,7 @@ from memory.addressresolver import AddressResolver as ranges
 #   Python 
 import copy
 import sys
-#sys.tracebacklimit = 0
+#sys.tracebacklimit = -1
 
 # pendientes
 #   imprimir constantes a archivo
@@ -81,6 +81,7 @@ class StatementManager:
 			Function that stores the params with a VariableSymbol that contains its 
 			address type -instace, local-
 		'''
+		params.reverse()
 		for param in params:
 			# Assigns a new address for the current param
 			new_address = self.memory.get_address(address_type, param[1])
@@ -118,6 +119,7 @@ class StatementManager:
 	def get_attrs_dict_for_class(self, class_name, args):
 		# Gets symbol of the class
 		class_symbol = self.table.get_class(class_name)
+		class_scope = self.table.get_class_scope(class_name)
 		# Make sure args are same type as params
 		argument_types = list(map(lambda x: x[1], args))
 		accepts = class_symbol.accepts_arguments(argument_types)
@@ -125,24 +127,23 @@ class StatementManager:
 			raise Exception('Arguments do not match constructor for class \''+class_name+'\'.')
 		attrs = {}
 		# Matches class param with passed args
-		class_attributes = zip(class_symbol.params, args)
+		temp_args = list(args)
+		temp_args.reverse()
+		class_attributes = zip(class_symbol.params, temp_args)
 		for (param, arg) in class_attributes:
-			attrs[param[0]] = arg
-			# if len(arg) == 3:
-			# 	symbol_attributes[param[0]] = arg[2]
-			# else:
-			# 	new_addr = self.memory.get_address('temp', param[1])
-			# 	symbol_attributes[param[0]] = VariableSymbol(new_addr, param[1])
+			instance_addr = class_scope.symbols[param[0]].address
+			attrs[param[0]] = (arg, instance_addr)
 		return attrs
 
-######################################################################################################################################### Vamos aquii,
 	def instantiate(self, class_name, args):
+		class_symbol = self.table.get_class(class_name)
 		attrs = self.get_attrs_dict_for_class(class_name, args)
 		obj = self.new_var_of_type(class_name, 'temp', attrs)
-		# self.quads.generate(OpIds.instance, class_symbol.address, 0, new_address)
-		# symbol = VariableSymbol(new_address, class_name, symbol_attributes)
+		for arg in args:
+			self.quads.generate(OpIds.param, 0, 0, arg[0])		
+		self.quads.generate(OpIds.instance, class_symbol.address, 0, obj[0])
 		self.foo = obj
-		return obj.to_tuple()
+		return obj
 
 	def end_class_scope(self):
 		'''
@@ -155,19 +156,35 @@ class StatementManager:
 		# Make sure value can be assigned to variable
 		self.oracle.can_assign(variable[1], value[1])
 		
-		# If trying to copy existing variable
-		if len(value) == 3 and isinstance(value[2], VariableSymbol):
-			new_symbol = copy.deepcopy(value[2])
-			new_attrs = self.copy_attributes(new_symbol) 
-			new_symbol.address = variable[0]
-			for name,attr in new_symbol.attrs.items():
-				new_address = self.memory.get_address('local' if self.in_local_scope else 'global', attr.type)
-			self.table.replace_symbol(variable[2], new_symbol)
+		if len(value) == 3:
+			variable = self.assign_variable(variable, value)
+		else:
+			variable = self.assign_temp(variable, value)
 
+		# If trying to copy existing variable
+		# if len(value) == 3 and isinstance(value[2], VariableSymbol):
+		# 	new_symbol = copy.deepcopy(value[2])
+		# 	new_attrs = self.copy_attributes(new_symbol) 
+		# 	new_symbol.address = variable[0]
+		# 	print(new_symbol)
+		# 	for name,attr in new_symbol.attrs.items():
+		# 		new_address = self.memory.get_address('local' if self.in_local_scope else 'global', attr.type)
+		# 	self.table.replace_symbol(variable[2], new_symbol)
+
+		# self.quads.generate(OpIds.assign, value[0], 0, variable[0])
+		return variable
+
+	def assign_variable(self, variable, value):
+		if isinstance(value[2], StackSymbol):
+			return self.assign_temp(variable, value)
+		return self.replicate(variable, value)
+
+	def assign_temp(self, variable, value):
 		self.quads.generate(OpIds.assign, value[0], 0, variable[0])
 		self.free_temp_memory(value[0])
 		return variable
-						
+
+
 	def copy_attributes(self, symbol):
 		# If it's an object instance
 		for key, attr in symbol.attrs.items():
@@ -222,7 +239,7 @@ class StatementManager:
 			symbol = variable_exists.get_attribute(property_id)
 			if not symbol:
 				raise Exception('Variable '+var_id+' does not have attribute '+property_id+'.')
-			return symbol.to_tuple()
+			return symbol
 
 	def id_property(self,property_id):
 		class_property = self.table.check_property(property_id)
@@ -292,6 +309,7 @@ class StatementManager:
 		if not symbol.accepts_arguments(argument_types):
 			raise Exception('Arguments do not match function parameters.')
 		new_address = self.memory.get_address('temp', symbol.type)
+		# arguments.reverse()
 		for param in arguments:
 			self.quads.generate(OpIds.param, 0, 0, param[0])
 		self.quads.generate(OpIds.call, symbol.address, 0, new_address)
@@ -387,33 +405,42 @@ class StatementManager:
 		self.quads.generate(OpIds.declare, 0, 0, new_address)
 
 		if is_stack:
-			return StackSymbol(new_address, type_name)
+			return StackSymbol(new_address, type_name).to_tuple()
 
 		new_attributes = {}
 		if self.var_type_is_obj(type_name):
 			new_attributes = self.get_attributes_for_class(type_name, scope, args)
 		new_symbol = VariableSymbol(new_address, type_name, new_attributes)
-		return new_symbol
+		return new_symbol.to_tuple()
 
 	def get_attributes_for_class(self, type_name, scope, args = {}):
 		class_scope = self.table.get_class_scope(type_name)
 		attrs = {}
 		for name,symbol in class_scope.symbols.items():
 			if isinstance(symbol, VariableSymbol):
-				new_symbol = args.get(name, None)
-				if not new_symbol:
-					symbol = self.new_var_of_type(symbol.type, scope)
+				arg = args.get(name, None)
+				# if not new_symbol:
+				new_symbol = self.new_var_of_type(symbol.type, scope)
+				if isinstance(arg, tuple):
+					instance_addr = arg[1]
+					self.quads.generate(OpIds.relate, new_symbol[0], 0, instance_addr)
 			attrs[name] = new_symbol
 		return attrs
 
-	def replicate(self, var_tuple):
-		return
+	def replicate(self, target, origin):
+		self.quads.generate(OpIds.assign, origin[0], 0, target[0])
+		self.free_temp_memory(origin[0])
+		if len(origin) == 3:
+			for name,target_attr in target[2].attrs.items():
+				self.replicate(target_attr, origin[2].attrs[name])
+		return target
 
 	def declare(self, var_tuple):
 		scope = 'local' if self.in_local_scope else 'global'
 		var_name = var_tuple[0]
+		# Checks it doesnt exist
 		self.table.local_neg_lookup(var_name)
 		var_type = var_tuple[1]
 		var = self.new_var_of_type(var_type, scope)
-		self.table.store(var_name, var)
-		return var.to_tuple()
+		self.table.store(var_name, var[2])
+		return var

@@ -1,0 +1,5 @@
+#sum:int(a:int, b:int, c:int) {
+    <- a + b + c;
+}
+
+print( sum(3, sum(4, 5, 9), 8) );

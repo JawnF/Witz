@@ -31,6 +31,8 @@ class OpIds:
     call = 30
     param = 31
     size = 32
+    relate = 33
+
 
     @staticmethod
     def get(op):

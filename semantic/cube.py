@@ -370,6 +370,8 @@ class SemanticCube:
         raise Exception('Cannot use operand '+op+' between types '+left+' and '+right)
 
     def can_assign(self, type1, type2):
+        if type1 == type2:
+            return True
         valid = self.is_valid('=', (0,type1), (0,type2))
         if not valid and type1 != type2:
             raise Exception('Assignment must be of the same object type')

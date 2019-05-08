@@ -45,7 +45,8 @@ class VMState:
 			OpIds.endconst : self.endconst,
 			OpIds.call : self.call,
 			OpIds.param : self.param,
-			OpIds.size : self.size
+			OpIds.size : self.size,
+			OpIds.relate : self.relate
 		}.get(op_id, self.null)
 
 	def scope(self):
@@ -132,13 +133,24 @@ class VMState:
 	def assign(self, cont, left, right, res):
 		val = self.get_value_from_memory(left)
 		scope,v_type = ranges.get_scope_and_type_from_address(res)
-		cast = {
-			'int' : int,
-			'float' : float,
-			'bool' : bool,
-			'str' : str
-		}.get(v_type, str)
-		self.vm.memory.store(res, cast(val))
+		if v_type == 'obj':
+			
+			# obj_addr = res # direccion obj del objeto target
+			# dic = self.vm.memory.get_dict_with_address(obj_addr) 
+			# for inst_addr,target_real_addr in dic[obj_addr].items():
+			# 	origin_real_address = val[inst_addr]
+			# 	dic[obj_addr][inst_addr] = target_real_address
+			# self.vm.memory.store(real_addr, value)
+			t = 1
+		else:
+			cast = {
+				'int' : int,
+				'float' : float,
+				'bool' : bool,
+				'str' : str,
+				'obj' : lambda x: x
+			}.get(v_type, str)
+			self.vm.memory.store(res, cast(val))
 		return (cont+1, self)
 
 	def goto(self, cont, left, right, res):
@@ -205,6 +217,10 @@ class VMState:
 		return (cont+1, self)
 
 	def declare(self, cont, left, right, res):
+		scope,v_type = ranges.get_scope_and_type_from_address(res)
+		if scope == 'temp' and v_type == 'obj':
+			self.vm.memory.temps.objs[res] = {}
+			self.vm.object = res
 		self.vm.memory.store(res, 0)
 		return (cont+1, self)
 
@@ -212,14 +228,34 @@ class VMState:
 		return (cont+1, self)
 
 	def attr(self, cont, left, right, res):
+		value = self.vm.grabs.pop()
+		addr = res
+		obj_addr = self.vm.object
+		dic = self.vm.memory.get_dict_with_address(obj_addr)
+		if not isinstance(dic[obj_addr], dict):
+			dic[obj_addr] = {}
+		real_addr = dic[obj_addr][res]
+		self.vm.memory.store(real_addr, value)
 		return (cont+1, self)
 
 	def endattr(self, cont, left, right, res):
-		return (cont+1, self)
+		continue_at = self.vm.jumps.pop()
+		return (continue_at, self)
 
 	def instance(self, cont, left, right, res):
-		return (cont+1, self)
+		self.vm.object = res
+		self.vm.jumps.append(cont+1)
+		return (left, self)
 
+	def relate(self, cont, left, right, res):
+		obj_addr = self.vm.object
+		dic = self.vm.memory.get_dict_with_address(obj_addr)
+		if not isinstance(dic[obj_addr], dict):
+			dic[obj_addr] = {}
+		real_addr = left
+		dic[obj_addr][res] = real_addr
+		return (cont+1, self)
+		
 
 
 
@@ -233,14 +269,12 @@ class VMState:
 	def call(self, cont, left, right, res):
 		quad = left
 		self.vm.memory.locals.expand()
-		self.vm.grabs.reverse()
 		self.vm.returns.append(res)
 		self.vm.jumps.append(cont+1)
 		return (quad, self)
 
 	def param(self, cont, left, right, res):
 		value = self.get_value_from_memory(res)
-		# print('passing', value)
 		self.vm.grabs.append(value)
 		return (cont+1, self)
 
@@ -248,15 +282,12 @@ class VMState:
 		continue_at = self.vm.jumps.pop()
 		store_return_to = self.vm.returns.pop()
 		return_value = self.get_value_from_memory(res)
-		# print('returning', return_value)
 		self.vm.memory.locals.end_function()
 		self.vm.memory.store(store_return_to, return_value)
-		# print('returning',self.get_value_from_memory(store_return_to))
 		return (continue_at, self)
 
 	def grab(self, cont, left, right, res):
 		value = self.vm.grabs.pop()
 		addr = res
 		self.vm.memory.store(addr, value)
-		# print('grabbing',res, self.get_value_from_memory(addr))
 		return (cont+1, self)
