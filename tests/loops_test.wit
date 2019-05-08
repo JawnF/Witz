@@ -1,0 +1,23 @@
+$i:int = 50*40+20-5*10;
+$x:int;
+if(i < 2000) {
+    x = i;
+    i = i * 100 / 2;
+}else {
+    x = i * 2;
+    i = i - 100;
+}
+print("value of x: ");
+print(x);
+print("value of i: ");
+print(i);
+
+while(i > 90000) {
+    i = i - 100;
+    x = x + 100;
+}
+
+print("value of x: ");
+print(x);
+print("value of i: ");
+print(i);

@@ -3,11 +3,13 @@ from lexicon import tokens
 from manager import StatementManager
 manager = StatementManager()
 
+target_file = "quads.wz"
+
 # Grammar for the general structure of the program
 def p_program(p):
     '''program : classes functions fill_goto statements
     '''
-    manager.create_quads_txt()
+    manager.create_quads_txt(target_file)
 
 def p_fill_goto(p):
     '''fill_goto : empty
@@ -134,7 +136,6 @@ def p_statement(p):
                  | print_stmt
                  | if_block
                  | while_block
-                 | for_block
                  | expr
     '''
 
@@ -232,7 +233,6 @@ def p_constructor_call(p):
     class_name = p[1]
     args = p[3]
     p[0] = manager.instantiate(class_name, args)
-#  ---------------------------------------- Ahora pa abajo xd
 
 def p_stack_call(p):
     '''stack_call : ID '.' stack_method
@@ -246,6 +246,7 @@ def p_stack_method(p):
     '''stack_method : POP '(' ')'
                     | PUSH '(' exp ')'
                     | PEEK '(' ')'
+                    | SIZE '(' ')'
     '''
     if len(p) > 4:
         p[0] = (p[1], p[3])
@@ -339,7 +340,10 @@ def p_math_exp_alt(p):
                     | empty 
     '''
     if len(p) > 2:
-        p[0] = p[3]
+        if p[4] == None:
+            p[0] = p[3]
+        else: 
+            p[0] = p[4]
 
 def p_term(p):
     '''term : factor term_alt
@@ -354,7 +358,10 @@ def p_term_alt(p):
                 | empty
     '''
     if len(p) > 2:
-        p[0] = p[3]
+        if p[4] == None:
+            p[0] = p[3]
+        else:
+            p[0] = p[4]
 
 def p_factor(p):
     '''factor : prop
@@ -453,11 +460,7 @@ def p_while_block(p):
     '''while_block : WHILE '(' leave_breadcrumb exp exp_evaluation ')' block
     '''
     manager.flow.while_after_block()
-
-def p_for_block(p):
-    '''for_block : FOR number FOR_TO number SKIP number block
-    '''
-
+    
 def p_block(p):
     '''block : '{' statements '}'
     '''
@@ -500,10 +503,7 @@ def p_new_quad(p):
     left = p[-3]
     right = p[-1]
     p[0] = manager.operate(op, left, right)
-    # oracle.is_valid(op, left[1], right[1])
-    # temp = Temp(res_type)
-    # quads.generate(op, left[0], right[0], temp)
-    # p[0] = (temp, res_type)
+    
 
 # Rule in charge of creating and opening a new class scope
 def p_scope_class(p):

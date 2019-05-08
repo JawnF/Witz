@@ -28,6 +28,9 @@ class OpIds:
     endattr = 27
     instance = 28
     endconst = 29
+    call = 30
+    param = 31
+    size = 32
 
     @staticmethod
     def get(op):

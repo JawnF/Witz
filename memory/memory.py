@@ -35,13 +35,15 @@ class Memory:
 
     def get_value(self, address):
         (scope, v_type) = ranges.get_scope_and_type_from_address(address)
-        return {
+        mem = {
         	'global' : self.globals,
         	'local' : self.locals,
         	'temp' : self.temps,
         	'const' : self.consts,
             'instance' : self.instances
-        }.get(scope).retrieve(v_type, address)
+        }.get(scope)
+        val = mem.retrieve(v_type, address)
+        return val
     
     def store(self, address, value):
         scope_type = ranges.get_scope_and_type_from_address(address)
@@ -51,18 +53,9 @@ class Memory:
         	'temp' : self.temps,
         	'const' : self.consts,
             'instance' : self.instances
-        }.get(scope_type[0]).store(scope_type, address, value)
-    
-    def print_value(self, address):
-        scope_type = ranges.get_scope_and_type_from_address(address)
-        directory = {
-        	'global' : self.globals,
-        	'local' : self.locals,
-        	'temp' : self.temps,
-        	'const' : self.consts,
-            'instance' : self.instances
-        }.get(scope_type[0]).print_value(scope_type, address)
-    
+        }.get(scope_type[0])
+        directory.store(scope_type, address, value)
+
     def get_dict_with_address(self, address):
         scope_type = ranges.get_scope_and_type_from_address(address)
         directory = {
@@ -71,4 +64,5 @@ class Memory:
         	'temp' : self.temps,
         	'const' : self.consts,
             'instance' : self.instances
-        }.get(scope_type[0]).print_value(scope_type)
+        }.get(scope_type[0])
+        return directory.get_dict_for_type(scope_type[1])

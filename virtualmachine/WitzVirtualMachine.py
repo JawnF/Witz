@@ -15,11 +15,14 @@ class WitzVirtualMachine:
 		self.context = GlobalState(self)
 		self.memory = Memory()
 		self.jumps = []
+		self.returns = []
+		self.grabs = []
 		self.quads = self.store_constants(quad_file.read().splitlines())
 
 	def run(self):
 		cont = 1
 		while cont <= len(self.quads):
+			# print('running', cont)
 			quad = self.quads[cont-1].split(',')
 			tup = self.context.execute(cont, int(quad[0]), int(quad[1]), int(quad[2]), int(quad[3]))
 			cont, self.context = tup
@@ -35,12 +38,3 @@ class WitzVirtualMachine:
 			value = values[2]
 			self.memory.consts.store(address, value)
 		return quad_file[processed:]
-	
-if len(sys.argv) < 2:
-	raise Exception('Please specify name of program.')
-quad_file_name = sys.argv[1]
-quad_file = open(quad_file_name, 'r')
-
-vm = WitzVirtualMachine(quad_file)
-vm.run()
-quad_file.close()

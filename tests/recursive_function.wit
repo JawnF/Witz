@@ -1,0 +1,22 @@
+#fibonacci:int(index:int) {
+    $res:int;
+    if (index < 1) {
+        res = 0;
+    } else {
+        if (index == 1) {
+            res = 1;
+        } else {
+            $left:int = fibonacci(index-1);
+            $right:int = fibonacci(index-2);
+            res = left + right;
+        }
+    }
+    <- res;
+}
+
+$i:int = 0;
+
+while (i < 13) {
+    print(fibonacci(i));
+    i = i + 1;
+}

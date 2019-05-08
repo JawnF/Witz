@@ -1,16 +1,24 @@
 #!/usr/bin/python
 
+import os
 import sys
 import grammar
+from virtualmachine.WitzVirtualMachine import WitzVirtualMachine
 
 if len(sys.argv) > 1:
 	filename = sys.argv[1]
-	file = open(filename, 'r')
+	witz_file = open(filename, 'r')
 	try:
-		grammar.parser.parse(file.read())
+		fn = os.path.splitext(filename)[0] + '.wz'
+		grammar.target_file = fn
+		grammar.parser.parse(witz_file.read())
+		quads_file = open(fn, 'r')
+		vm = WitzVirtualMachine(quads_file)
+		vm.run()
+		quads_file.close()
 	except Exception as e:
 		print e
-	file.close()
+	witz_file.close()
 else:
 	count = 0
 	while(count < 3):

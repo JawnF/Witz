@@ -1,0 +1,12 @@
+#simple:int(bar:int) {
+    if(bar > 1 ){
+        bar = bar + simple(bar-1);
+    }
+    <- bar;
+}
+
+$i:int = 1;
+while (i <= 10) {
+    print(simple(i));
+    i = i + 1;
+}

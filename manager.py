@@ -29,7 +29,7 @@ class StatementManager:
 		self.oracle = SemanticCube()
 		self.quads = QuadGenerator()
 		self.memory = Memory()
-		self.flow = FlowManager(self.quads)
+		self.flow = FlowManager(self.quads, self.memory)
 		# Creating the quad for the initial functions jump
 		self.create_initial_jump()
 
@@ -155,7 +155,7 @@ class StatementManager:
 	def assign(self, variable, value):
 		# Make sure value can be assigned to variable
 		self.oracle.can_assign(variable[1], value[1])
-        
+		
 		# If trying to copy existing variable
 		if len(value) == 3 and isinstance(value[2], VariableSymbol):
 			new_symbol = copy.deepcopy(value[2])
@@ -166,6 +166,7 @@ class StatementManager:
 			self.table.replace_symbol(variable[2], new_symbol)
 
 		self.quads.generate(OpIds.assign, value[0], 0, variable[0])
+		self.free_temp_memory(value[0])
 		return variable
 						
 	def copy_attributes(self, symbol):
@@ -190,51 +191,52 @@ class StatementManager:
 					self.copy_attributes_aux(attr)
 
 	def this_property(self, prop_id):
-	    '''
-	    Function that handles the this.property functionallity
-	    '''
-	    # returns tuple with the address of the attribute and str of type
-	    # First we check if user is in a class scope
-	    in_class_scope = self.table.check_class_scope()
-	    # We are in a class scope
-	    if in_class_scope:
-	        class_has_property = self.table.check_class_property(prop_id)
-	        if class_has_property:
-	            if isinstance(class_has_property, StackSymbol):
-	                raise Exception('Cannot use stack '+prop_id+' outside a stack call.')
+		'''
+		Function that handles the this.property functionallity
+		'''
+		# returns tuple with the address of the attribute and str of type
+		# First we check if user is in a class scope
+		in_class_scope = self.table.check_class_scope()
+		# We are in a class scope
+		if in_class_scope:
+			class_has_property = self.table.check_class_property(prop_id)
+			if class_has_property:
+				if isinstance(class_has_property, StackSymbol):
+					raise Exception('Cannot use stack '+prop_id+' outside a stack call.')
 				
-	            # Returns the symbol
-	            return class_has_property.to_tuple()
-	        else:
-	            raise Exception('Property '+prop_id+' does not exist in class '+in_class_scope+'.')
-	    # If we are not inside a class scope, then the keyword this is not available
-	    else:
-	        raise Exception('Keyword this is not available outside a class scope')
+				# Returns the symbol
+				return class_has_property.to_tuple()
+			else:
+				raise Exception('Property '+prop_id+' does not exist in class '+in_class_scope+'.')
+		# If we are not inside a class scope, then the keyword this is not available
+		else:
+			raise Exception('Keyword this is not available outside a class scope')
 			
 	def var_property(self, var_id, property_id):
-	    '''
-	    Function that handles the id.id functionallity
-	    '''
-	    variable_exists = self.id_property(var_id)[2]
-	    if isinstance(variable_exists, FunctionSymbol):
-	        raise Exception('Cannot access property of function '+var_id+'.')
-	    if variable_exists:
+		'''
+		Function that handles the id.id functionallity
+		'''
+		variable_exists = self.id_property(var_id)[2]
+		if isinstance(variable_exists, FunctionSymbol):
+			raise Exception('Cannot access property of function '+var_id+'.')
+		if variable_exists:
 			symbol = variable_exists.get_attribute(property_id)
 			if not symbol:
 				raise Exception('Variable '+var_id+' does not have attribute '+property_id+'.')
 			return symbol.to_tuple()
 
 	def id_property(self,property_id):
-	    class_property = self.table.check_property(property_id)
-	    if isinstance(class_property, StackSymbol):
-	        raise Exception('Cannot use stack '+property_id+' outside a stack call.')
-	    if class_property:
-	        return class_property.to_tuple()
-	    else:
-	        raise Exception('Variable '+property_id+' is not defined.')
+		class_property = self.table.check_property(property_id)
+		if isinstance(class_property, StackSymbol):
+			raise Exception('Cannot use stack '+property_id+' outside a stack call.')
+		if class_property:
+			return class_property.to_tuple()
+		else:
+			raise Exception('Variable '+property_id+' is not defined.')
 
 	def print_output(self, expression):
 		self.quads.generate(OpIds.io_print, 0, 0, expression[0])
+		self.free_temp_memory(expression[0])
 		return expression
 	
 	def return_value(self, return_value):
@@ -253,12 +255,12 @@ class StatementManager:
 			raise Exception('Cannot return void in function of type '+self.table.scope().symbol.type) 
 	
 	def float_constant(self, value):
-	    address = self.memory.get_constant_address('float', value)
-	    return (address, 'float')
+		address = self.memory.get_constant_address('float', value)
+		return (address, 'float')
 
 	def int_constant(self, value):
-	    address = self.memory.get_constant_address('int', value)
-	    return (address, 'int')
+		address = self.memory.get_constant_address('int', value)
+		return (address, 'int')
 						
 	def string_constant(self, value):
 		address = self.memory.get_constant_address('str', value)
@@ -274,70 +276,80 @@ class StatementManager:
 		return(temp_addr, 'str')
 
 	def operate(self, operator, left_op, right_op):
-	    # left_op & right_op = tuple(address, type)
-	    res_type = self.oracle.is_valid(operator, left_op, right_op)
-	    new_address = self.memory.get_address('temp', res_type)
-	    self.quads.generate(OpIds.get(operator), left_op[0], right_op[0], new_address)
-	    # liberar memoria temporal de left_op y right_op
-	    self.memory.free_if_temp(left_op[0])
-	    self.memory.free_if_temp(right_op[0])
-	    return (new_address, res_type)
+		# left_op & right_op = tuple(address, type)
+		res_type = self.oracle.is_valid(operator, left_op, right_op)
+		new_address = self.memory.get_address('temp', res_type)
+		self.quads.generate(OpIds.get(operator), left_op[0], right_op[0], new_address)
+		# liberar memoria temporal de left_op y right_op
+		self.memory.free_if_temp(left_op[0])
+		self.memory.free_if_temp(right_op[0])
+		return (new_address, res_type)
 
 	def check_call_validity(self, property, arguments):
-	    symbol = property[2]
-	    argument_types = list(map(lambda x: x[1], arguments))
-	    if not symbol.is_callable:
-	        raise Exception('Cannot call a non callable object')
-	    if not symbol.accepts_arguments(argument_types):
-	        raise Exception('Arguments do not match function parameters.')
-	    new_address = self.memory.get_address('temp', symbol.type)
-	    return (new_address, symbol.type)
+		symbol = property[2]
+		argument_types = list(map(lambda x: x[1], arguments))
+		if not symbol.is_callable:
+			raise Exception('Cannot call a non callable object')
+		if not symbol.accepts_arguments(argument_types):
+			raise Exception('Arguments do not match function parameters.')
+		new_address = self.memory.get_address('temp', symbol.type)
+		for param in arguments:
+			self.quads.generate(OpIds.param, 0, 0, param[0])
+		self.quads.generate(OpIds.call, symbol.address, 0, new_address)
+		return (new_address, symbol.type)
  
 	def call_stack(self, stack_symbol, call):
-	    if call[0] == 'push':
-	        return self.push_stack(stack_symbol, call[1])
-	    elif call[0] == 'peek':
-	        return self.peek_stack(stack_symbol)
-	    else:
-	        return self.pop_stack(stack_symbol)
+		if call[0] == 'push':
+			return self.push_stack(stack_symbol, call[1])
+		elif call == 'peek':
+			return self.peek_stack(stack_symbol)
+		elif call == 'size':
+			return self.size_stack(stack_symbol)
+		else:
+			return self.pop_stack(stack_symbol)
 
 	def push_stack(self, symbol, tuple_expr):
-	    if symbol.type != tuple_expr[1]:
-	        raise Exception('Cannot push element of type '+tuple_expr[1]+' into a stack of type '+symbol.type)
-	    self.quads.generate(OpIds.push, tuple_expr[0], 0, symbol.address)
-	    return tuple_expr
+		if symbol.type != tuple_expr[1]:
+			raise Exception('Cannot push element of type '+tuple_expr[1]+' into a stack of type '+symbol.type)
+		self.quads.generate(OpIds.push, tuple_expr[0], 0, symbol.address)
+		return tuple_expr
+
+	def size_stack(self, symbol):
+		new_address = self.memory.get_address('temp', 'int')
+		self.quads.generate(OpIds.size, symbol.address, 0, new_address)
+		return (new_address, 'int')
 
 	def pop_stack(self, symbol):
-	    new_address = self.memory.get_address('temp', symbol.type)
-	    self.quads.generate(OpIds.pop, symbol.address, 0, new_address)
-	    return (new_address, symbol.type)
+		new_address = self.memory.get_address('temp', symbol.type)
+		self.quads.generate(OpIds.pop, symbol.address, 0, new_address)
+		return (new_address, symbol.type)
 
 
 	def peek_stack(self, symbol):
-	    new_addres = self.memory.get_address('temp', symbol.type)
-	    self.quads.generate(OpIds.peek, symbol.address, 0, new_address)
-	    return (new_address, symbol.type)
+		new_address = self.memory.get_address('temp', symbol.type)
+		self.quads.generate(OpIds.peek, symbol.address, 0, new_address)
+		return (new_address, symbol.type)
 
 	def is_stack_type(self, variable):
-	    symbol = self.table.lookup(variable)
-	    if not isinstance(symbol, StackSymbol):
-	        raise Exception('Cannot perform stack methods on non-stack property '+variable+'.')
-	    return symbol
+		symbol = self.table.lookup(variable)
+		if not isinstance(symbol, StackSymbol):
+			raise Exception('Cannot perform stack methods on non-stack property '+variable+'.')
+		return symbol
 
 	def clear_instance_memory(self):
 		self.memory.clear_instance_memory()
 
 	def id_does_not_exist(self, identifier):
-	    id_exist = self.table.lookup(identifier)
-	    if id_exist:
-	        raise Exception('Identifier '+identifier + ' already exists')
+		id_exist = self.table.lookup(identifier)
+		if id_exist:
+			raise Exception('Identifier '+identifier + ' already exists')
 
 	def fill_goto(self):
 		self.quads.fill_jump()
 
 	# TODO : move to quad_generator
-	def create_quads_txt(self):
-		file = open("quads.txt","w+")
+	def create_quads_txt(self, filename):
+		file = open(filename,"w+")
 		for addr, value in self.memory.consts.ints.items():
 			if addr > 0:
 				file.write(str(addr)+','+str(value)+'\n')

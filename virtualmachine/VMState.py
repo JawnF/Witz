@@ -2,6 +2,9 @@ import os, sys
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(CURRENT_DIR))
 from quads.opids import OpIds
+from memory.addressresolver import AddressResolver as ranges
+from semantic.cube import SemanticCube
+oracle = SemanticCube()
 
 class VMState:
 
@@ -40,6 +43,9 @@ class VMState:
 			OpIds.endattr : self.endattr,
 			OpIds.instance : self.instance,
 			OpIds.endconst : self.endconst,
+			OpIds.call : self.call,
+			OpIds.param : self.param,
+			OpIds.size : self.size
 		}.get(op_id, self.null)
 
 	def scope(self):
@@ -125,7 +131,14 @@ class VMState:
 
 	def assign(self, cont, left, right, res):
 		val = self.get_value_from_memory(left)
-		self.vm.memory.store(res, val)
+		scope,v_type = ranges.get_scope_and_type_from_address(res)
+		cast = {
+			'int' : int,
+			'float' : float,
+			'bool' : bool,
+			'str' : str
+		}.get(v_type, str)
+		self.vm.memory.store(res, cast(val))
 		return (cont+1, self)
 
 	def goto(self, cont, left, right, res):
@@ -158,18 +171,36 @@ class VMState:
 	def push(self, cont, left, right, res):
 		val = self.get_value_from_memory(left)
 		mem = self.vm.memory.get_dict_with_address(res)
+		current_value = mem[res]
+		if not isinstance(current_value, list):
+			mem[res] = []
 		mem[res].append(val)
 		return (cont+1, self)
 
 	def pop(self, cont, left, right, res):
 		mem = self.vm.memory.get_dict_with_address(left)
-		val = mem[res].pop()
+		if len(mem[left]) == 0:
+			raise Exception('Can\'t pop value from empty stack.')
+		else:
+			val = mem[left].pop()
+		self.vm.memory.store(res, val)
+		return (cont+1, self)
+
+	def size(self, cont, left, right, res):
+		mem = self.vm.memory.get_dict_with_address(left)
+		current_value = mem[left]
+		if not isinstance(current_value, list):
+			raise Exception('Can\'t get size of non-stack.')
+		val = len(mem[left])
 		self.vm.memory.store(res, val)
 		return (cont+1, self)
 
 	def peek(self, cont, left, right, res):
 		mem = self.vm.memory.get_dict_with_address(left)
-		val = mem[res][-1]
+		if len(mem[left]) == 0:
+			raise Exception('Can\'t peek value from empty stack.')
+		else:
+			val = mem[left][-1]
 		self.vm.memory.store(res, val)
 		return (cont+1, self)
 
@@ -177,16 +208,10 @@ class VMState:
 		self.vm.memory.store(res, 0)
 		return (cont+1, self)
 
-	def func_return(self, cont, left, right, res):
-		return (cont+1, self)
-
 	def inherit(self, cont, left, right, res):
 		return (cont+1, self)
 
 	def attr(self, cont, left, right, res):
-		return (cont+1, self)
-
-	def grab(self, cont, left, right, res):
 		return (cont+1, self)
 
 	def endattr(self, cont, left, right, res):
@@ -199,3 +224,36 @@ class VMState:
 		return (cont+1, self)
 
 		self.vm.memory.store(res, lo-ro)
+
+
+
+	def call(self, cont, left, right, res):
+		quad = left
+		self.vm.memory.locals.expand()
+		self.vm.grabs.reverse()
+		self.vm.returns.append(res)
+		self.vm.jumps.append(cont+1)
+		return (quad, self)
+
+	def param(self, cont, left, right, res):
+		value = self.get_value_from_memory(res)
+		# print('passing', value)
+		self.vm.grabs.append(value)
+		return (cont+1, self)
+
+	def func_return(self, cont, left, right, res):
+		continue_at = self.vm.jumps.pop()
+		store_return_to = self.vm.returns.pop()
+		return_value = self.get_value_from_memory(res)
+		# print('returning', return_value)
+		self.vm.memory.locals.end_function()
+		self.vm.memory.store(store_return_to, return_value)
+		# print('returning',self.get_value_from_memory(store_return_to))
+		return (continue_at, self)
+
+	def grab(self, cont, left, right, res):
+		value = self.vm.grabs.pop()
+		addr = res
+		self.vm.memory.store(addr, value)
+		# print('grabbing',res, self.get_value_from_memory(addr))
+		return (cont+1, self)

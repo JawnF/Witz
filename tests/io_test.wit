@@ -1,0 +1,18 @@
+print("Enter your name.");
+$name:str = read();
+
+print("Enter your age.");
+$age:int = read();
+
+print("Enter your height in meters.");
+$height:float = read();
+
+print('---------------');
+print("Your name is: ");
+print(name);
+print("Your age is: ");
+print(age);
+print("Your height is: ");
+print(height);
+print("Your height in inches is: ");
+print(height / 0.0254);

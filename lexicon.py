@@ -11,14 +11,13 @@ reserved = {
 	'if' 		: 'IF',
 	'else' 		: 'ELSE',
     'while'     : 'WHILE',
-    'for'       : 'FOR',
-    'skip'      : 'SKIP',
     'or'        : 'OR',
     'and'       : 'AND',
     'this'      : 'THIS',
     'new'       : 'NEW',
     'pop'       : 'POP',
     'peek'      : 'PEEK',
+    'size'      : 'SIZE',
     'push'      : 'PUSH',
     'stack'     : 'STACK',
     'this'      : 'THIS',
@@ -38,7 +37,6 @@ tokens = [
 	'LE', # less or equal
     # Witz custom declaration
     'RETURN',
-    'FOR_TO',
 	] + list(reserved.values())
 
 # Estos son los caracteres que el lexer individualmente como tokens
@@ -86,8 +84,6 @@ t_LE = r'<='
 t_GE = r'>='
 
 t_RETURN = r'<-'
-
-t_FOR_TO = r'->'
 
 t_ignore = ' \t\n'
 

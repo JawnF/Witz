@@ -1,0 +1,12 @@
+$foo:stack(int);
+foo.push(14 + 6);
+foo.push(14 + 40);
+foo.push(1);
+foo.push(3);
+
+$i:int = foo.size();
+
+while (i > 0) {
+    print(foo.pop());
+    i = foo.size();
+}

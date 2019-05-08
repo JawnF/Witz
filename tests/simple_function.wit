@@ -1,0 +1,7 @@
+#foo:int(bar:int, baz:str){
+    print(baz);
+    <- bar * 20;
+}
+
+$bar:int = foo(5, "yes");
+print(bar);

@@ -28,6 +28,16 @@ class GlobalMemory:
 		mem[address] = 0
 		return address
 
+	def get_dict_for_type(self, v_type):
+		mem = {
+			'int' : self.ints,
+			'float' : self.floats,
+			'bool' : self.bools,
+			'str' : self.strs,
+			'obj' : self.objs,
+		}.get(v_type, self.objs)
+		return mem
+
 	def last_index(self, mem):
 		keys = mem.keys()
 		index = max(keys)
@@ -60,7 +70,6 @@ class GlobalMemory:
 			'bool' : self.bools,
 			'str' : self.strs,
 		}.get(v_type)
-		print(mem[address])
 	
 	def get_dict_with_address(self, scope_type):
 		mem = {
@@ -157,7 +166,6 @@ class TemporalMemory:
 			'bool' : self.bools,
 			'str' : self.strs,
 		}.get(v_type)
-		print(mem[address])
 	
 	def get_dict_with_address(self, scope_type):
 		mem = {
@@ -190,9 +198,7 @@ class LocalMemory:
 	strs 	= {start: 32001,		end: 36000}
 	objs 	= {start: 36001, 		end: 40000}
 
-	top = -1
-	last = -2
-	current = top
+	current = -1
 	stack = []
 
 	def __init__(self):
@@ -206,19 +212,30 @@ class LocalMemory:
 			'str' : dict(LocalMemory.strs),
 			'obj' : dict(LocalMemory.objs),
 		})
-		self.current = self.top
 
 	def end_function(self):
 		self.stack.pop()
 
-	def get_next(self, v_temp):
+	def get_dict_for_type(self, v_type):
+		current = self.stack[self.current]
 		mem = {
-			'int' : self.ints,
-			'float' : self.floats,
-			'bool' : self.bools,
-			'str' : self.strs,
-			'obj' : self.objs,
-		}.get(v_temp, self.objs)
+			'int' : current['int'],
+			'float' : current['float'],
+			'bool' : current['bool'],
+			'str' : current['str'],
+			'obj' : current['obj'],
+		}.get(v_type, current['obj'])
+		return mem
+
+	def get_next(self, v_type):
+		current = self.stack[self.current]
+		mem = {
+			'int' : current['int'],
+			'float' : current['float'],
+			'bool' : current['bool'],
+			'str' : current['str'],
+			'obj' : current['obj'],
+		}.get(v_type, current['obj'])
 		index = self.last_index(mem) + 1
 		address = index
 		if address > mem[self.end]:
@@ -235,20 +252,21 @@ class LocalMemory:
 	
 	def store(self, scope_type, address, value):
 		v_type = scope_type[1]
+		current = self.stack[self.current]
 		mem = {
-			'int' : self.ints,
-			'float' : self.floats,
-			'bool' : self.bools,
-			'str' : self.strs,
-			'obj' : self.objs,
-		}.get(v_type, self.objs)
+			'int' : current['int'],
+			'float' : current['float'],
+			'bool' : current['bool'],
+			'str' : current['str'],
+			'obj' : current['obj'],
+		}.get(v_type, current['obj'])
 		cast = {
 			'int' : int,
 			'float' : float,
 			'bool' : bool,
 			'str' : str,
-		}.get(v_type)
-		mem[address] = cast(value, lambda x: x)
+		}.get(v_type, lambda x: x)
+		mem[address] = cast(value)
 	
 	def print_value(self, scope_type, address):
 		v_type = scope_type[1]
@@ -270,14 +288,16 @@ class LocalMemory:
 		return mem
 
 	def retrieve(self, scope_type, address):
+		current = self.stack[self.current]
 		mem = {
-			'int' : self.ints,
-			'float' : self.floats,
-			'bool' : self.bools,
-			'str' : self.strs,
-			'obj' : self.objs,
-		}.get(scope_type, self.objs)
-		return mem[address]
+			'int' : current['int'],
+			'float' : current['float'],
+			'bool' : current['bool'],
+			'str' : current['str'],
+			'obj' : current['obj'],
+		}.get(scope_type, current['obj'])
+		val = mem[address]
+		return val
 
 class ConstantMemory:
 	start = -1
@@ -364,7 +384,6 @@ class ConstantMemory:
 			'bool' : self.bools,
 			'str' : self.strs,
 		}.get(v_type)
-		print(mem[address])
 	
 	def get_dict_with_address(self, scope_type):
 		mem = {

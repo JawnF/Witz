@@ -17,9 +17,9 @@ class QuadGenerator:
     def pop_jump(self):
         return self.jumps.pop()
     
-    def fill_jump(self):
+    def fill_jump(self, offset = 0):
         index = self.pop_jump()
         temp_quad = self.quads[index]
-        temp_quad.target = self.current_index
+        temp_quad.target = self.current_index + offset
         self.quads[index] = temp_quad
     
