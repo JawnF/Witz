@@ -1,5 +1,4 @@
 from .quad import Quad
-from .temp import Temp
 
 class QuadGenerator:
     quads = {}

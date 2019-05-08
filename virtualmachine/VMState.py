@@ -220,6 +220,9 @@ class VMState:
 	def instance(self, cont, left, right, res):
 		return (cont+1, self)
 
+
+
+
 	def endconst(self, cont, left, right, res):
 		return (cont+1, self)
 

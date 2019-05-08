@@ -6,4 +6,3 @@ class GlobalState(VMState):
 		op = self.get_operation(op)
 		return op(cont, left, right, res)
 	
-	

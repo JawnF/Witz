@@ -6,7 +6,6 @@ from semantic.symbols import FunctionSymbol
 from semantic.symbols import StackSymbol
 from semantic.cube import SemanticCube
 ## Quads
-from quads.temp import Temp
 from quads.quad_generator import QuadGenerator
 from quads.flow_manager import FlowManager
 from quads.opids import OpIds

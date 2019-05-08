@@ -1,1 +1,0 @@
-$res:int = 4; print(res + 4 + 4 + 3 + 2); print(res);
