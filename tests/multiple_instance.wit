@@ -1,4 +1,0 @@
-@god(){} 
-@person(mygod:god){} 
-@dog(owner:person){} 
-$fito:dog = new dog(new person(new god()));

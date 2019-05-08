@@ -1,5 +1,5 @@
-@dog(name:str, age:int){
-    #bark:void() {
+@dog(name:str, age:int) {
+    #bark:void(){
         this.age = 10;
         print(name);
     }
@@ -8,12 +8,12 @@
     }
 }
 
-#factorial:int(index:int) {
+#factorial:int(number:int) {
     $res:int;
-    if (index < 2) {
+    if (number < 2) {
         res = 1;
     } else {
-        res = index * factorial(index-1);
+        res = number * factorial(number-1);
     }
     <- res;
 }
@@ -33,7 +33,6 @@ while (i < limit) {
 }
 
 $j:int = foo.size();
-
 while (j > 0) {
     print(foo.pop());
     j = foo.size();
