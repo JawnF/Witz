@@ -32,6 +32,7 @@ class OpIds:
     param = 31
     size = 32
     relate = 33
+    context = 34
 
 
     @staticmethod

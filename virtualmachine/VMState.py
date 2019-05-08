@@ -46,7 +46,8 @@ class VMState:
 			OpIds.call : self.call,
 			OpIds.param : self.param,
 			OpIds.size : self.size,
-			OpIds.relate : self.relate
+			OpIds.relate : self.relate,
+			OpIds.context : self.context
 		}.get(op_id, self.null)
 
 	def scope(self):
@@ -56,78 +57,93 @@ class VMState:
 		return (cont+1, self)
 
 	def get_value_from_memory(self, address):
+		if address == 0:
+			return 0
+		scope,v_type = ranges.get_scope_and_type_from_address(address)
+		if scope == 'instance':
+			obj_addr = self.vm.object
+			obj_dict = self.vm.memory.get_value(obj_addr) 
+			address = obj_dict[address]
 		return self.vm.memory.get_value(address)
+
+	def store_to_memory(self, address, value):
+		scope,v_type = ranges.get_scope_and_type_from_address(address)
+		if scope == 'instance':
+			obj_addr = self.vm.object
+			obj_dict = self.vm.memory.get_value(obj_addr) 
+			address = obj_dict[address]
+		self.vm.memory.store(address, value)
 
 	def add(self, cont, left, right, res):
 		lo = self.get_value_from_memory(left)
 		ro = self.get_value_from_memory(right)
-		self.vm.memory.store(res, lo+ro)
+		self.store_to_memory(res, lo+ro)
 		return (cont+1, self)
 
 	def sub(self, cont, left, right, res):
 		lo = self.get_value_from_memory(left)
 		ro = self.get_value_from_memory(right)
-		self.vm.memory.store(res, lo-ro)
+		self.store_to_memory(res, lo-ro)
 		return (cont+1, self)
 
 	def mult(self, cont, left, right, res):
 		lo = self.get_value_from_memory(left)
 		ro = self.get_value_from_memory(right)
-		self.vm.memory.store(res, lo*ro)
+		self.store_to_memory(res, lo*ro)
 		return (cont+1, self)
 
 	def div(self, cont, left, right, res):
 		lo = self.get_value_from_memory(left)
 		ro = self.get_value_from_memory(right)
-		self.vm.memory.store(res, lo/ro)
+		self.store_to_memory(res, lo/ro)
 		return (cont+1, self)
 
 	def gt(self, cont, left, right, res):
 		lo = self.get_value_from_memory(left)
 		ro = self.get_value_from_memory(right)
-		self.vm.memory.store(res, lo>ro)
+		self.store_to_memory(res, lo>ro)
 		return (cont+1, self)
 
 	def lt(self, cont, left, right, res):
 		lo = self.get_value_from_memory(left)
 		ro = self.get_value_from_memory(right)
-		self.vm.memory.store(res, lo<ro)
+		self.store_to_memory(res, lo<ro)
 		return (cont+1, self)
 
 	def ge(self, cont, left, right, res):
 		lo = self.get_value_from_memory(left)
 		ro = self.get_value_from_memory(right)
-		self.vm.memory.store(res, lo>=ro)
+		self.store_to_memory(res, lo>=ro)
 		return (cont+1, self)
 
 	def le(self, cont, left, right, res):
 		lo = self.get_value_from_memory(left)
 		ro = self.get_value_from_memory(right)
-		self.vm.memory.store(res, lo<=ro)
+		self.store_to_memory(res, lo<=ro)
 		return (cont+1, self)
 
 	def eq(self, cont, left, right, res):
 		lo = self.get_value_from_memory(left)
 		ro = self.get_value_from_memory(right)
-		self.vm.memory.store(res, lo==ro)
+		self.store_to_memory(res, lo==ro)
 		return (cont+1, self)
 
 	def ne(self, cont, left, right, res):
 		lo = self.get_value_from_memory(left)
 		ro = self.get_value_from_memory(right)
-		self.vm.memory.store(res, lo!=ro)
+		self.store_to_memory(res, lo!=ro)
 		return (cont+1, self)
 
 	def logic_and(self, cont, left, right, res):
 		lo = self.get_value_from_memory(left)
 		ro = self.get_value_from_memory(right)
-		self.vm.memory.store(res, lo and ro)
+		self.store_to_memory(res, lo and ro)
 		return (cont+1, self)
 
 	def logic_or(self, cont, left, right, res):
 		lo = self.get_value_from_memory(left)
 		ro = self.get_value_from_memory(right)
-		self.vm.memory.store(res, lo or ro)
+		self.store_to_memory(res, lo or ro)
 		return (cont+1, self)
 
 	def assign(self, cont, left, right, res):
@@ -140,7 +156,7 @@ class VMState:
 			# for inst_addr,target_real_addr in dic[obj_addr].items():
 			# 	origin_real_address = val[inst_addr]
 			# 	dic[obj_addr][inst_addr] = target_real_address
-			# self.vm.memory.store(real_addr, value)
+			# self.store_to_memory(real_addr, value)
 			t = 1
 		else:
 			cast = {
@@ -150,7 +166,7 @@ class VMState:
 				'str' : str,
 				'obj' : lambda x: x
 			}.get(v_type, str)
-			self.vm.memory.store(res, cast(val))
+			self.store_to_memory(res, cast(val))
 		return (cont+1, self)
 
 	def goto(self, cont, left, right, res):
@@ -172,7 +188,7 @@ class VMState:
 
 	def io_read(self, cont, left, right, res):
 		val = raw_input()
-		self.vm.memory.store(res, val)
+		self.store_to_memory(res, val)
 		return (cont+1, self)
 
 	def io_print(self, cont, left, right, res):
@@ -195,7 +211,7 @@ class VMState:
 			raise Exception('Can\'t pop value from empty stack.')
 		else:
 			val = mem[left].pop()
-		self.vm.memory.store(res, val)
+		self.store_to_memory(res, val)
 		return (cont+1, self)
 
 	def size(self, cont, left, right, res):
@@ -204,7 +220,7 @@ class VMState:
 		if not isinstance(current_value, list):
 			raise Exception('Can\'t get size of non-stack.')
 		val = len(mem[left])
-		self.vm.memory.store(res, val)
+		self.store_to_memory(res, val)
 		return (cont+1, self)
 
 	def peek(self, cont, left, right, res):
@@ -213,15 +229,15 @@ class VMState:
 			raise Exception('Can\'t peek value from empty stack.')
 		else:
 			val = mem[left][-1]
-		self.vm.memory.store(res, val)
+		self.store_to_memory(res, val)
 		return (cont+1, self)
 
 	def declare(self, cont, left, right, res):
 		scope,v_type = ranges.get_scope_and_type_from_address(res)
-		if scope == 'temp' and v_type == 'obj':
+		if v_type == 'obj':
 			self.vm.memory.temps.objs[res] = {}
 			self.vm.object = res
-		self.vm.memory.store(res, 0)
+		self.store_to_memory(res, 0)
 		return (cont+1, self)
 
 	def inherit(self, cont, left, right, res):
@@ -231,11 +247,12 @@ class VMState:
 		value = self.vm.grabs.pop()
 		addr = res
 		obj_addr = self.vm.object
+		print(value, addr, obj_addr)
 		dic = self.vm.memory.get_dict_with_address(obj_addr)
 		if not isinstance(dic[obj_addr], dict):
 			dic[obj_addr] = {}
 		real_addr = dic[obj_addr][res]
-		self.vm.memory.store(real_addr, value)
+		self.store_to_memory(real_addr, value)
 		return (cont+1, self)
 
 	def endattr(self, cont, left, right, res):
@@ -262,7 +279,7 @@ class VMState:
 	def endconst(self, cont, left, right, res):
 		return (cont+1, self)
 
-		self.vm.memory.store(res, lo-ro)
+		self.store_to_memory(res, lo-ro)
 
 
 
@@ -280,14 +297,23 @@ class VMState:
 
 	def func_return(self, cont, left, right, res):
 		continue_at = self.vm.jumps.pop()
-		store_return_to = self.vm.returns.pop()
-		return_value = self.get_value_from_memory(res)
+		if res != 0:
+			store_return_to = self.vm.returns.pop()
+			return_value = self.get_value_from_memory(res)
+			self.store_to_memory(store_return_to, return_value)
+		try:
+			self.vm.object = None
+		except:
+			pass
 		self.vm.memory.locals.end_function()
-		self.vm.memory.store(store_return_to, return_value)
 		return (continue_at, self)
 
 	def grab(self, cont, left, right, res):
 		value = self.vm.grabs.pop()
 		addr = res
-		self.vm.memory.store(addr, value)
+		self.store_to_memory(addr, value)
+		return (cont+1, self)
+
+	def context(self, cont, left, right, res):
+		self.vm.object = res
 		return (cont+1, self)

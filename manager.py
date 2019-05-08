@@ -119,7 +119,6 @@ class StatementManager:
 	def get_attrs_dict_for_class(self, class_name, args):
 		# Gets symbol of the class
 		class_symbol = self.table.get_class(class_name)
-		class_scope = self.table.get_class_scope(class_name)
 		# Make sure args are same type as params
 		argument_types = list(map(lambda x: x[1], args))
 		accepts = class_symbol.accepts_arguments(argument_types)
@@ -131,8 +130,7 @@ class StatementManager:
 		temp_args.reverse()
 		class_attributes = zip(class_symbol.params, temp_args)
 		for (param, arg) in class_attributes:
-			instance_addr = class_scope.symbols[param[0]].address
-			attrs[param[0]] = (arg, instance_addr)
+			attrs[param[0]] = arg
 		return attrs
 
 	def instantiate(self, class_name, args):
@@ -236,6 +234,7 @@ class StatementManager:
 		if isinstance(variable_exists, FunctionSymbol):
 			raise Exception('Cannot access property of function '+var_id+'.')
 		if variable_exists:
+			# self.quads.generate(OpIds.context,0,0,variable_exists.address)
 			symbol = variable_exists.get_attribute(property_id)
 			if not symbol:
 				raise Exception('Variable '+var_id+' does not have attribute '+property_id+'.')
@@ -301,8 +300,10 @@ class StatementManager:
 		self.memory.free_if_temp(right_op[0])
 		return (new_address, res_type)
 
-	def check_call_validity(self, property, arguments):
-		symbol = property[2]
+	def check_call_validity(self, prop, arguments, context = 0):
+		if isinstance(prop, tuple):
+			prop = prop[2]
+		symbol = prop
 		argument_types = list(map(lambda x: x[1], arguments))
 		if not symbol.is_callable:
 			raise Exception('Cannot call a non callable object')
@@ -419,15 +420,14 @@ class StatementManager:
 		for name,symbol in class_scope.symbols.items():
 			if isinstance(symbol, VariableSymbol):
 				arg = args.get(name, None)
-				# if not new_symbol:
-				new_symbol = self.new_var_of_type(symbol.type, scope)
-				if isinstance(arg, tuple):
-					instance_addr = arg[1]
-					self.quads.generate(OpIds.relate, new_symbol[0], 0, instance_addr)
-			attrs[name] = new_symbol
+				symbol = self.new_var_of_type(symbol.type, scope)
+				self.quads.generate(OpIds.relate, symbol[0], 0, class_scope.symbols[name].address)
+			attrs[name] = symbol
 		return attrs
 
 	def replicate(self, target, origin):
+		if isinstance(target, FunctionSymbol):
+			return target
 		self.quads.generate(OpIds.assign, origin[0], 0, target[0])
 		self.free_temp_memory(origin[0])
 		if len(origin) == 3:

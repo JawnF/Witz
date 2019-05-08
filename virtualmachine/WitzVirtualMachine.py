@@ -12,11 +12,12 @@ import sys
 class WitzVirtualMachine:
 
 	def __init__(self, quad_file):
-		self.context = GlobalState(self)
+		self.state = GlobalState(self)
 		self.memory = Memory()
 		self.jumps = []
 		self.returns = []
 		self.grabs = []
+		self.context = None
 		self.quads = self.store_constants(quad_file.read().splitlines())
 
 	def run(self):
@@ -24,8 +25,8 @@ class WitzVirtualMachine:
 		while cont <= len(self.quads):
 			# print('running', cont)
 			quad = self.quads[cont-1].split(',')
-			tup = self.context.execute(cont, int(quad[0]), int(quad[1]), int(quad[2]), int(quad[3]))
-			cont, self.context = tup
+			tup = self.state.execute(cont, int(quad[0]), int(quad[1]), int(quad[2]), int(quad[3]))
+			cont, self.state = tup
 
 	def store_constants(self, quad_file):
 		processed = 0

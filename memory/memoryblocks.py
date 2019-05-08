@@ -126,7 +126,7 @@ class TemporalMemory:
 		while (mem[self.next_addr] in keys):
 			mem[self.next_addr] += 1
 		return mem[self.next_addr]
-		
+
 	def get_dict_for_type(self, v_type):
 		mem = {
 			'int' : self.ints,
@@ -147,7 +147,8 @@ class TemporalMemory:
 				'str' : self.strs,
 				'obj' : self.objs,
 			}.get(v_type, self.objs)
-			mem.pop(addr)
+			if mem.get(addr, None):
+				mem.pop(addr)
 			if mem[self.next_addr] > addr:
 				mem[self.next_addr] = addr
 	

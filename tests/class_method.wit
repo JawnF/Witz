@@ -1,0 +1,13 @@
+@dog(name:str, age:int){
+    #bark:void() {
+        this.age = 10;
+        print(name);
+    }
+    #getage:int(){
+        <- this.age;
+    }
+}
+
+$fito:dog = new dog('fito', 3);
+fito.bark();
+print(fito.getage());
