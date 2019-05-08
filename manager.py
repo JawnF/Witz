@@ -234,7 +234,7 @@ class StatementManager:
 		if isinstance(variable_exists, FunctionSymbol):
 			raise Exception('Cannot access property of function '+var_id+'.')
 		if variable_exists:
-			# self.quads.generate(OpIds.context,0,0,variable_exists.address)
+			self.quads.generate(OpIds.context,0,0,variable_exists.address)
 			symbol = variable_exists.get_attribute(property_id)
 			if not symbol:
 				raise Exception('Variable '+var_id+' does not have attribute '+property_id+'.')

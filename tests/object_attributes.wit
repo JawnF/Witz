@@ -4,7 +4,7 @@
 
 $fito:dog = new dog("fito", 3);
 print(fito.name);
-fito.name = "PUTO";
+fito.name = "el nombre nuevo de fito";
 print(fito.name);
 $lalo:dog = fito;
 lalo.name = "lalo";

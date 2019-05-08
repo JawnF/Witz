@@ -247,7 +247,6 @@ class VMState:
 		value = self.vm.grabs.pop()
 		addr = res
 		obj_addr = self.vm.object
-		print(value, addr, obj_addr)
 		dic = self.vm.memory.get_dict_with_address(obj_addr)
 		if not isinstance(dic[obj_addr], dict):
 			dic[obj_addr] = {}
@@ -257,6 +256,7 @@ class VMState:
 
 	def endattr(self, cont, left, right, res):
 		continue_at = self.vm.jumps.pop()
+		self.vm.object = None
 		return (continue_at, self)
 
 	def instance(self, cont, left, right, res):
@@ -272,16 +272,11 @@ class VMState:
 		real_addr = left
 		dic[obj_addr][res] = real_addr
 		return (cont+1, self)
-		
-
-
 
 	def endconst(self, cont, left, right, res):
 		return (cont+1, self)
 
 		self.store_to_memory(res, lo-ro)
-
-
 
 	def call(self, cont, left, right, res):
 		quad = left
